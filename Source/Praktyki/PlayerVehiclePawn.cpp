@@ -50,7 +50,6 @@ void APlayerVehiclePawn::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 void APlayerVehiclePawn::SetThrottleInput(float Value)
 {
-    //UE_LOG(LogTemp, Display, TEXT("SetThrottleInput Value = %f"), Value);
     GetVehicleMovementComponent()->SetThrottleInput(Value);
 }
 
@@ -76,5 +75,7 @@ void APlayerVehiclePawn::SetLookRihtInput(float Value)
 
 void APlayerVehiclePawn::Tick(float DeltaTime)
 {
-    //GetVehicleMovementComponent()->SetThrottleInput(Value);
+	FVector VelocityVec = GetVelocity();
+	float Velocity = VelocityVec.Size() * 0.036f;
+	UE_LOG(LogTemp, Display, TEXT("Velocity = %f"), Velocity);
 }
