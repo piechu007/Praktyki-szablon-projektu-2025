@@ -4,6 +4,9 @@
 #include "PlayerVehiclePawn.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
+#include "EnhancedInputSubsystems.h"
+#include "EnhancedInputComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "ChaosVehicleMovementComponent.h"
 
 APlayerVehiclePawn::APlayerVehiclePawn()
@@ -21,61 +24,87 @@ APlayerVehiclePawn::APlayerVehiclePawn()
 
 }
 
+void APlayerVehiclePawn::BeginPlay()
+{
+	Super::BeginPlay();
+
+	// Setup TankMapingContext
+    VehiclePlayerController = Cast<APlayerController>(GetController());
+    if (VehiclePlayerController)
+    {
+        UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(VehiclePlayerController->GetLocalPlayer());
+        if (Subsystem)
+        {
+            Subsystem->AddMappingContext(VehicleMapingContext, 0);
+        }
+    }
+}
+
+
 void APlayerVehiclePawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	PlayerInputComponent->BindAxis("Throttle", this, &APlayerVehiclePawn::SetThrottleInput);
-	PlayerInputComponent->BindAxis("Brake", this, &APlayerVehiclePawn::SetBrakeInput);
-	PlayerInputComponent->BindAxis("Steering", this, &APlayerVehiclePawn::SetSteeringInput);
-	PlayerInputComponent->BindAxis("LookRight", this, &APlayerVehiclePawn::SetLookRihtInput);
-	PlayerInputComponent->BindAxis("LookUp", this, &APlayerVehiclePawn::SetLookUpInput);
-
-	//PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &AVehiclePawn::Jump);
-
-	//PlayerInputComponent->BindAxis("MoveForward", this, &AVehiclePawn::MoveForward);
-	//PlayerInputComponent->BindAxis("MoveRight", this, &AVehiclePawn::MoveRight);
-	//PlayerInputComponent->BindAxis("Turn", this, &AVehiclePawn::Turn);
-	//PlayerInputComponent->BindAxis("LookUp", this, &AVehiclePawn::LookUp);
-
-	//PlayerInputComponent->BindAction("Equip", IE_Pressed, this, &AVehiclePawn::EquipButtonPressed);
-	//PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &AVehiclePawn::CrouchButtonPressed);
-	//PlayerInputComponent->BindAction("Aim", IE_Pressed, this, &AVehiclePawn::AimButtonPressed);
-	//PlayerInputComponent->BindAction("Aim", IE_Released, this, &AVehiclePawn::AimButtonReleased);
-	//PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AVehiclePawn::FireButtonPressed);
-	//PlayerInputComponent->BindAction("Fire", IE_Released, this, &AVehiclePawn::FireButtonReleased);
-	//PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &AVehiclePawn::ReloadButtonPressed);
-	//PlayerInputComponent->BindAction("ThrowGrenade", IE_Pressed, this, &AVehiclePawn::GrenadeButtonPressed);
+    UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent);
+	if(EnhancedInputComponent)
+	{
+		EnhancedInputComponent->BindAction(SteeringAction, ETriggerEvent::Triggered, this, &APlayerVehiclePawn::SetSteeringInput);
+		EnhancedInputComponent->BindAction(SteeringAction, ETriggerEvent::Completed, this, &APlayerVehiclePawn::SetSteeringInput);
+		EnhancedInputComponent->BindAction(ThrottleAction, ETriggerEvent::Triggered, this, &APlayerVehiclePawn::SetThrottleInput);
+		EnhancedInputComponent->BindAction(ThrottleAction, ETriggerEvent::Completed, this, &APlayerVehiclePawn::SetThrottleInput);
+		EnhancedInputComponent->BindAction(BrakeAction, ETriggerEvent::Triggered, this, &APlayerVehiclePawn::SetBrakeInput);
+		EnhancedInputComponent->BindAction(BrakeAction, ETriggerEvent::Completed, this, &APlayerVehiclePawn::SetBrakeInput);
+		EnhancedInputComponent->BindAction(HandbrakeAction, ETriggerEvent::Triggered, this, &APlayerVehiclePawn::SetHandbrakeTriggeredInput);
+		EnhancedInputComponent->BindAction(HandbrakeAction, ETriggerEvent::Completed, this, &APlayerVehiclePawn::SetHandbrakeCompletedInput);
+		EnhancedInputComponent->BindAction(ToggleCameraAction, ETriggerEvent::Started, this, &APlayerVehiclePawn::SetToggleCameraInput);
+		EnhancedInputComponent->BindAction(LookUpAction, ETriggerEvent::Triggered, this, &APlayerVehiclePawn::SetLookUpInput);
+		EnhancedInputComponent->BindAction(LookRightAction, ETriggerEvent::Triggered, this, &APlayerVehiclePawn::SetLookRightInput);
+	}
 }
 
-void APlayerVehiclePawn::SetThrottleInput(float Value)
+void APlayerVehiclePawn::SetSteeringInput(const FInputActionValue &Value)
 {
-    GetVehicleMovementComponent()->SetThrottleInput(Value);
+    GetVehicleMovementComponent()->SetSteeringInput(Value.Get<float>());
 }
 
-void APlayerVehiclePawn::SetBrakeInput(float Value)
+void APlayerVehiclePawn::SetThrottleInput(const FInputActionValue &Value)
 {
-    GetVehicleMovementComponent()->SetBrakeInput(Value);
+    GetVehicleMovementComponent()->SetThrottleInput(Value.Get<float>());
 }
 
-void APlayerVehiclePawn::SetSteeringInput(float Value)
+void APlayerVehiclePawn::SetBrakeInput(const FInputActionValue &Value)
 {
-    GetVehicleMovementComponent()->SetSteeringInput(Value);
+    GetVehicleMovementComponent()->SetBrakeInput(Value.Get<float>());
 }
 
-void APlayerVehiclePawn::SetLookUpInput(float Value)
+void APlayerVehiclePawn::SetHandbrakeTriggeredInput(const FInputActionValue &Value)
 {
-    CameraBoom->AddRelativeRotation(FRotator(Value, 0.0f, 0.0f));
+    GetVehicleMovementComponent()->SetHandbrakeInput(true);
 }
 
-void APlayerVehiclePawn::SetLookRihtInput(float Value)
+void APlayerVehiclePawn::SetHandbrakeCompletedInput(const FInputActionValue &Value)
 {
-    CameraBoom->AddRelativeRotation(FRotator(0.0f, Value, 0.0f));
+    GetVehicleMovementComponent()->SetHandbrakeInput(false);
+}
+
+void APlayerVehiclePawn::SetToggleCameraInput(const FInputActionValue &Value)
+{
+    // TODO: ToggleCamera
+}
+
+void APlayerVehiclePawn::SetLookUpInput(const FInputActionValue &Value)
+{
+    CameraBoom->AddRelativeRotation(FRotator(Value.Get<float>(), 0.0f, 0.0f));
+}
+
+void APlayerVehiclePawn::SetLookRightInput(const FInputActionValue &Value)
+{
+    CameraBoom->AddRelativeRotation(FRotator(0.0f, Value.Get<float>(), 0.0f));
 }
 
 void APlayerVehiclePawn::Tick(float DeltaTime)
 {
-	FVector VelocityVec = GetVelocity();
-	float Velocity = VelocityVec.Size() * 0.036f;
-	UE_LOG(LogTemp, Display, TEXT("Velocity = %f"), Velocity);
+	//FVector VelocityVec = GetVelocity();
+	//float Velocity = VelocityVec.Size() * 0.036f;
+	//UE_LOG(LogTemp, Display, TEXT("Velocity = %f"), Velocity);
 }

@@ -4,7 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "WheeledVehiclePawn.h"
+#include "InputActionValue.h"
 #include "PlayerVehiclePawn.generated.h"
+
+class UInputAction;
 
 /**
  * 
@@ -20,22 +23,39 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 protected:
-	//virtual void BeginPlay() override;
+	virtual void BeginPlay() override;
 
-	//void MoveForward(float Value);
-	//void MoveRight(float Value);
-	//void Turn(float Value);
-	//void LookUp(float Value);
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	class UInputMappingContext *VehicleMapingContext;
 
-	void SetThrottleInput(float Value);
-	void SetBrakeInput(float Value);
-	void SetSteeringInput(float Value);
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	UInputAction *SteeringAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	UInputAction *ThrottleAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	UInputAction *BrakeAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	UInputAction *HandbrakeAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	UInputAction *ToggleCameraAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	UInputAction *LookUpAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	UInputAction *LookRightAction;
 
-	void SetLookUpInput(float Value);
-	void SetLookRihtInput(float Value);
+	void SetSteeringInput(const FInputActionValue &Value);
+	void SetThrottleInput(const FInputActionValue &Value);
+	void SetBrakeInput(const FInputActionValue &Value);
+	void SetHandbrakeTriggeredInput(const FInputActionValue &Value);
+	void SetHandbrakeCompletedInput(const FInputActionValue &Value);
+	void SetToggleCameraInput(const FInputActionValue &Value);
+	void SetLookUpInput(const FInputActionValue &Value);
+	void SetLookRightInput(const FInputActionValue &Value);
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 	class USpringArmComponent* CameraBoom;
+
+	class APlayerController* VehiclePlayerController;
 };
 
