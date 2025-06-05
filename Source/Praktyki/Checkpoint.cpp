@@ -55,9 +55,9 @@ void ACheckpoint::HandleComponentBeginOverlap(UPrimitiveComponent* OverlappedCom
 	}
 }
 
-void CheckpointReached(APlayerVehiclePawn *PlayerVehiclePawn)
+void ACheckpoint::CheckpointReached(APlayerVehiclePawn *PlayerVehiclePawn)
 {
-	
+
 }
 
 

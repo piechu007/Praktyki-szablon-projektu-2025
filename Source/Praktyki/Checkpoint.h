@@ -7,7 +7,7 @@
 #include "Checkpoint.generated.h"
 
 class UPrimitiveComponent;
-struct FHitResult;
+class APlayerVehiclePawn;
 
 UCLASS()
 class PRAKTYKI_API ACheckpoint : public AActor
