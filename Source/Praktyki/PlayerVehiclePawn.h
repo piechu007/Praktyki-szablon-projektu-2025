@@ -20,10 +20,11 @@ class PRAKTYKI_API APlayerVehiclePawn : public AWheeledVehiclePawn
 public:
 	APlayerVehiclePawn();
 	virtual void Tick(float DeltaTime) override;
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 protected:
 	virtual void BeginPlay() override;
+
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputMappingContext *VehicleMapingContext;
