@@ -25,3 +25,27 @@ void AMenuGameMode::ChangeSelectedPlayerVehiclePawn(int32 Diretion)
         GameInstance->SelectedCar = AvailablePlayerVehiclePawn[CurrentPlayerVehiclePawnIndex];
     }
 }
+
+void AMenuGameMode::ChangeSelectedLapsCount(int32 Diretion)
+{
+    if (GameInstance)
+    {
+        GameInstance->SelectedLapsCount = FMath::Clamp(GameInstance->SelectedLapsCount + Diretion, MinLapsCount, MaxLapsCount);
+    }
+}
+
+void AMenuGameMode::ChangeSelectedMap(int32 Diretion)
+{
+    if (GameInstance)
+    {
+        GameInstance->SelectedLapsCount = FMath::Clamp(GameInstance->SelectedLapsCount + Diretion, MinLapsCount, MaxLapsCount);
+    }
+}
+
+void AMenuGameMode::ChangeSelectedGameMode(int32 Diretion)
+{
+    if (GameInstance)
+    {
+        GameInstance->SelectedLapsCount = FMath::Clamp(GameInstance->SelectedLapsCount + Diretion, MinLapsCount, MaxLapsCount);
+    }
+}

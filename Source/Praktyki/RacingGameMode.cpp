@@ -14,7 +14,7 @@ void ARacingGameMode::InitGame(const FString &MapName, const FString &Options, F
     Super::InitGame(MapName, Options, ErrorMessage);
 
     // Setup Race Settings from GameInstance
-    URacingGameInstance *GameInstance = Cast<URacingGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
+    GameInstance = Cast<URacingGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
     if (GameInstance)
     {
         DefaultPawnClass = GameInstance->SelectedCar;
@@ -47,9 +47,9 @@ void ARacingGameMode::BeginPlay()
     // Reset all Player Racing Data
     if (GameState)
     {
-        for (APlayerState* PlayerState : GameState->PlayerArray)
+        for (APlayerState *PlayerState : GameState->PlayerArray)
         {
-            ACustomPlayerState* CustomPlayerState = Cast<ACustomPlayerState>(PlayerState);
+            ACustomPlayerState *CustomPlayerState = Cast<ACustomPlayerState>(PlayerState);
             if (CustomPlayerState)
             {
                 CustomPlayerState->SetupRacingData(FoundCheckpoints.Num());
@@ -58,13 +58,30 @@ void ARacingGameMode::BeginPlay()
     }
 }
 
+void ARacingGameMode::HandlePlayerCompletLap(ACustomPlayerState *PlayerState)
+{
+    if (PlayerState && PlayerState->GetCompletedLaps() == GameInstance->SelectedLapsCount)
+    {
+        if (APlayerController *PlayerController = PlayerState->GetPlayerController())
+        {
+            PlayerController->SetInputMode(FInputModeUIOnly());
+            if(APawn* Pawn = PlayerController->GetPawnOrSpectator())
+            {
+                Pawn->Destroy();
+            }
+        }
+
+        // TODO: Check All Players
+        GameOver();
+    }
+}
+
 void ARacingGameMode::HandleCheckpointReached(APlayerVehiclePawn *PlayerVehiclePawn, int32 CheckpointIndex, bool bFinishLine)
 {
-    UE_LOG(LogTemp, Display, TEXT("HandleCheckpointReached %i"), CheckpointIndex);
     AController *Controller = PlayerVehiclePawn->GetController();
     if (Controller)
     {
-        ACustomPlayerState* PlayerState = Cast<ACustomPlayerState>(Controller->PlayerState);
+        ACustomPlayerState *PlayerState = Cast<ACustomPlayerState>(Controller->PlayerState);
         if (PlayerState)
         {
             PlayerState->CheckpointReached(CheckpointIndex, bFinishLine);

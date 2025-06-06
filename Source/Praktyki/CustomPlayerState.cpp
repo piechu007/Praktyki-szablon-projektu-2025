@@ -1,6 +1,7 @@
 // Copyright 2025 Teyon. All Rights Reserved.
 
 #include "CustomPlayerState.h"
+#include "RacingGameMode.h"
 #include "Engine/World.h"
 
 void ACustomPlayerState::SetupRacingData(int32 NewChecpointCount)
@@ -12,7 +13,7 @@ void ACustomPlayerState::SetupRacingData(int32 NewChecpointCount)
     CorrectCheckpointsReached.Add(0);
     WrongCheckpointsReached.Empty();
     TotalTime = 0;
-    LapTime.Empty();
+    LapTimes.Empty();
 }
 
 float ACustomPlayerState::GetCurrentTotalTime()
@@ -33,6 +34,38 @@ FString ACustomPlayerState::GetCurrentTotalTimeText()
 FString ACustomPlayerState::GetCurrentLapTimeText()
 {
     return FloatTimeToTextTime(GetCurrentLapTime());
+}
+
+TArray<FString> ACustomPlayerState::GetAllLapTimesText()
+{
+    TArray<FString> AllLapTimesText;
+    for (float LapTimeText : LapTimes)
+    {
+        AllLapTimesText.Add(FloatTimeToTextTime(LapTimeText));
+    }
+    return AllLapTimesText;
+}
+
+int32 ACustomPlayerState::GetBestLapIndex()
+{
+    if (LapTimes.Num() == 0)
+    {
+        return 0;
+    }
+
+    int32 MinIndex = 0;
+    float MinTime = LapTimes[0];
+
+    for (int32 i = 1; i < LapTimes.Num(); i++)
+    {
+        if (LapTimes[i] < MinTime)
+        {
+            MinTime = LapTimes[i];
+            MinIndex = i;
+        }
+    }
+
+    return MinIndex;
 }
 
 void ACustomPlayerState::CheckpointReached(int32 NewCheckpointIndex, bool bFinishLine)
@@ -75,15 +108,15 @@ void ACustomPlayerState::CheckpointReached(int32 NewCheckpointIndex, bool bFinis
         }
     }
     LastCheckpoint = NewCheckpointIndex;
-
-    FString log = TEXT("CheckpointReached ") + FString::FromInt(NewCheckpointIndex);
+    
+    /*FString log = TEXT("CheckpointReached ") + FString::FromInt(NewCheckpointIndex);
     log += TEXT("\n CorrectCheckpointsReached:  ");
     for (int32 index : CorrectCheckpointsReached)
         log += FString::FromInt(index) + TEXT(", ");
     log += TEXT("\n WrongCheckpointsReached:    ");
     for (int32 index : WrongCheckpointsReached)
         log += FString::FromInt(index) + TEXT(", ");
-    UE_LOG(LogTemp, Warning, TEXT("%s"), *log);
+    UE_LOG(LogTemp, Warning, TEXT("%s"), *log);*/
 }
 
 bool ACustomPlayerState::CheckNextCheckpoint(int32 NewCheckpointIndex)
@@ -98,9 +131,14 @@ bool ACustomPlayerState::CheckNextCheckpoint(int32 NewCheckpointIndex)
 void ACustomPlayerState::LapCompleted()
 {
     CompletedLaps++;
-    LapTime.Add(GetWorld()->GetTimeSeconds() - TotalTime);
+    LapTimes.Add(GetWorld()->GetTimeSeconds() - TotalTime);
     TotalTime = GetWorld()->GetTimeSeconds();
-    
+
+    ARacingGameMode *GameMode = Cast<ARacingGameMode>(GetWorld()->GetAuthGameMode());
+    if (GameMode)
+    {
+        GameMode->HandlePlayerCompletLap(this);
+    }
 }
 
 FString ACustomPlayerState::FloatTimeToTextTime(float TimeInSeconds)
@@ -113,3 +151,5 @@ FString ACustomPlayerState::FloatTimeToTextTime(float TimeInSeconds)
 
     return FString::Printf(TEXT("%02d:%02d.%02d"), Minutes, Seconds, Hundredths);
 }
+
+

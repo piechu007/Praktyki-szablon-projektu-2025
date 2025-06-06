@@ -28,6 +28,10 @@ public:
 	FString GetCurrentTotalTimeText();
 	UFUNCTION(BlueprintPure)
 	FString GetCurrentLapTimeText();
+	UFUNCTION(BlueprintPure)
+	TArray<FString> GetAllLapTimesText();
+	UFUNCTION(BlueprintPure)
+	int32 GetBestLapIndex();
 private:
 	int32 CompletedLaps;
 
@@ -37,7 +41,7 @@ private:
 	TArray<int32> WrongCheckpointsReached;
 
 	float TotalTime;
-	TArray<float> LapTime;
+	TArray<float> LapTimes;
 
 	void LapCompleted();
 

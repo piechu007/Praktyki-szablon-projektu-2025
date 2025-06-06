@@ -20,12 +20,23 @@ class PRAKTYKI_API AMenuGameMode : public AGameMode
 public:
 	UFUNCTION(BlueprintCallable)
 	void ChangeSelectedPlayerVehiclePawn(int32 Diretion);
+	UFUNCTION(BlueprintCallable)
+	void ChangeSelectedLapsCount(int32 Diretion);
+	UFUNCTION(BlueprintCallable)
+	void ChangeSelectedMap(int32 Diretion);
+	UFUNCTION(BlueprintCallable)
+	void ChangeSelectedGameMode(int32 Diretion);
 
 protected:
 	virtual void BeginPlay() override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Race Settings");
 	TArray<TSubclassOf<APlayerVehiclePawn>> AvailablePlayerVehiclePawn;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Race Settings");
+	int32 MinLapsCount = 1;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Race Settings");
+	int32 MaxLapsCount = 5;
 
 private:
 	int32 CurrentPlayerVehiclePawnIndex = 0;
