@@ -6,6 +6,8 @@
 #include "GameFramework/GameMode.h"
 #include "RacingGameMode.generated.h"
 
+class APlayerVehiclePawn;
+
 /**
  * 
  */
@@ -20,4 +22,6 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	UFUNCTION()
+	virtual void HandleCheckpointReached(APlayerVehiclePawn *PlayerVehiclePawn, int32 CheckpointIndex, bool bFinishLine);
 };

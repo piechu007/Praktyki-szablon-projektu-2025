@@ -9,6 +9,8 @@
 class UPrimitiveComponent;
 class APlayerVehiclePawn;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnCheckpointReached, APlayerVehiclePawn*, PlayerVehiclePawn, int32, CheckpointIndex, bool, bFinishLine);
+
 UCLASS()
 class PRAKTYKI_API ACheckpoint : public AActor
 {
@@ -18,10 +20,21 @@ public:
 	// Sets default values for this actor's properties
 	ACheckpoint();
 
+	UPROPERTY(BlueprintAssignable)
+    FOnCheckpointReached OnCheckpointReached;
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void CheckpointReached(APlayerVehiclePawn *PlayerVehiclePawn, int32 NewCheckpointIndex, bool bReachedFinishLine);
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-	virtual void CheckpointReached(APlayerVehiclePawn *PlayerVehiclePawn);
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Checkpoint")
+	int32 CheckpointIndex = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Checkpoint")
+	bool bFinishLine = false;
 
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))

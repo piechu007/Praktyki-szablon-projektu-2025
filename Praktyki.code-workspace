@@ -20,7 +20,14 @@
 			"DOTNET_ROLL_FORWARD": "LatestMajor"
 		},
 		"files.associations": {
-			"*.rh": "cpp"
+			"*.rh": "cpp",
+			"chrono": "cpp",
+			"ranges": "cpp",
+			"variant": "cpp",
+			"util": "cpp",
+			"cmath": "cpp",
+			"complex": "cpp",
+			"valarray": "cpp"
 		}
 	},
 	"extensions": {
