@@ -6,6 +6,8 @@
 #include "GameFramework/PlayerState.h"
 #include "CustomPlayerState.generated.h"
 
+class ARacingGameMode;
+
 /**
  *
  */
@@ -15,11 +17,11 @@ class PRAKTYKI_API ACustomPlayerState : public APlayerState
 	GENERATED_BODY()
 
 public:
-	void SetupRacingData(int32 NewChecpointCount);
+	void SetupRacingData(int32 NewChecpointCount, ARacingGameMode *GameMode);
 	void CheckpointReached(int32 NewCheckpointIndex, bool bFinishLine);
 
 	UFUNCTION(BlueprintPure)
-	int32 GetCompletedLaps() const { return CompletedLaps; } 
+	int32 GetCompletedLaps() const { return CompletedLaps; }
 	UFUNCTION(BlueprintPure)
 	float GetCurrentTotalTime();
 	UFUNCTION(BlueprintPure)
@@ -32,7 +34,10 @@ public:
 	TArray<FString> GetAllLapTimesText();
 	UFUNCTION(BlueprintPure)
 	int32 GetBestLapIndex();
+
 private:
+	ARacingGameMode *RacingGameMode;
+
 	int32 CompletedLaps;
 
 	int32 ChecpointCount;

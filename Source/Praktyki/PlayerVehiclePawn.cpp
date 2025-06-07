@@ -1,6 +1,5 @@
 // Copyright 2025 Teyon. All Rights Reserved.
 
-
 #include "PlayerVehiclePawn.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
@@ -16,12 +15,11 @@ APlayerVehiclePawn::APlayerVehiclePawn()
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(GetMesh());
 	CameraBoom->TargetArmLength = 600.f;
-	//CameraBoom->bUsePawnControlRotation = true;
-    
-	UCameraComponent* FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
-	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
-	//FollowCamera->bUsePawnControlRotation = false;
+	// CameraBoom->bUsePawnControlRotation = true;
 
+	UCameraComponent *FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
+	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
+	// FollowCamera->bUsePawnControlRotation = false;
 }
 
 void APlayerVehiclePawn::BeginPlay()
@@ -29,24 +27,23 @@ void APlayerVehiclePawn::BeginPlay()
 	Super::BeginPlay();
 
 	// Setup TankMapingContext
-    VehiclePlayerController = Cast<APlayerController>(GetController());
-    if (VehiclePlayerController)
-    {
-        UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(VehiclePlayerController->GetLocalPlayer());
-        if (Subsystem)
-        {
-            Subsystem->AddMappingContext(VehicleMapingContext, 0);
-        }
-    }
+	VehiclePlayerController = Cast<APlayerController>(GetController());
+	if (VehiclePlayerController)
+	{
+		UEnhancedInputLocalPlayerSubsystem *Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(VehiclePlayerController->GetLocalPlayer());
+		if (Subsystem)
+		{
+			Subsystem->AddMappingContext(VehicleMapingContext, 0);
+		}
+	}
 }
 
-
-void APlayerVehiclePawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+void APlayerVehiclePawn::SetupPlayerInputComponent(UInputComponent *PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-    UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent);
-	if(EnhancedInputComponent)
+	UEnhancedInputComponent *EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent);
+	if (EnhancedInputComponent)
 	{
 		EnhancedInputComponent->BindAction(SteeringAction, ETriggerEvent::Triggered, this, &APlayerVehiclePawn::SetSteeringInput);
 		EnhancedInputComponent->BindAction(SteeringAction, ETriggerEvent::Completed, this, &APlayerVehiclePawn::SetSteeringInput);
@@ -64,47 +61,54 @@ void APlayerVehiclePawn::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 void APlayerVehiclePawn::SetSteeringInput(const FInputActionValue &Value)
 {
-    GetVehicleMovementComponent()->SetSteeringInput(Value.Get<float>());
+	GetVehicleMovementComponent()->SetSteeringInput(Value.Get<float>());
 }
 
 void APlayerVehiclePawn::SetThrottleInput(const FInputActionValue &Value)
 {
-    GetVehicleMovementComponent()->SetThrottleInput(Value.Get<float>());
+	GetVehicleMovementComponent()->SetThrottleInput(Value.Get<float>());
 }
 
 void APlayerVehiclePawn::SetBrakeInput(const FInputActionValue &Value)
 {
-    GetVehicleMovementComponent()->SetBrakeInput(Value.Get<float>());
+	GetVehicleMovementComponent()->SetBrakeInput(Value.Get<float>());
 }
 
 void APlayerVehiclePawn::SetHandbrakeTriggeredInput(const FInputActionValue &Value)
 {
-    GetVehicleMovementComponent()->SetHandbrakeInput(true);
+	GetVehicleMovementComponent()->SetHandbrakeInput(true);
 }
 
 void APlayerVehiclePawn::SetHandbrakeCompletedInput(const FInputActionValue &Value)
 {
-    GetVehicleMovementComponent()->SetHandbrakeInput(false);
+	GetVehicleMovementComponent()->SetHandbrakeInput(false);
 }
 
 void APlayerVehiclePawn::SetToggleCameraInput(const FInputActionValue &Value)
 {
-    // TODO: ToggleCamera
+	// TODO: ToggleCamera
 }
 
 void APlayerVehiclePawn::SetLookUpInput(const FInputActionValue &Value)
 {
-    CameraBoom->AddRelativeRotation(FRotator(Value.Get<float>(), 0.0f, 0.0f));
+	CameraBoom->AddRelativeRotation(FRotator(Value.Get<float>(), 0.0f, 0.0f));
 }
 
 void APlayerVehiclePawn::SetLookRightInput(const FInputActionValue &Value)
 {
-    CameraBoom->AddRelativeRotation(FRotator(0.0f, Value.Get<float>(), 0.0f));
+	CameraBoom->AddRelativeRotation(FRotator(0.0f, Value.Get<float>(), 0.0f));
+}
+
+void APlayerVehiclePawn::SetLockHandbrakeState(bool bNewLockHandbake)
+{
+	bLockHandbreak = bNewLockHandbake;
+	GetVehicleMovementComponent()->SetHandbrakeInput(bLockHandbreak);
 }
 
 void APlayerVehiclePawn::Tick(float DeltaTime)
 {
-	//FVector VelocityVec = GetVelocity();
-	//float Velocity = VelocityVec.Size() * 0.036f;
-	//UE_LOG(LogTemp, Display, TEXT("Velocity = %f"), Velocity);
+	if (bLockHandbreak)
+	{
+		GetVehicleMovementComponent()->SetHandbrakeInput(true);
+	}
 }

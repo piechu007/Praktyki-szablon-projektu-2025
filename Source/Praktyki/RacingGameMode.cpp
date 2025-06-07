@@ -25,11 +25,30 @@ void ARacingGameMode::BeginPlay()
 {
     Super::BeginPlay();
 
-    // Player Input ModeGameOnly
+    HandleGameStart();
+}
+
+void ARacingGameMode::Tick(float DeltaSeconds)
+{
+    Super::Tick(DeltaSeconds);
+
+    if (bIsRaceActive)
+    {
+        RaceTimer += DeltaSeconds;
+    }
+}
+
+void ARacingGameMode::HandleGameStart()
+{
+    // Player Input ModeGameOnly and LockHandbreak
     APlayerController *PlayerController = UGameplayStatics::GetPlayerController(this, 0);
     if (PlayerController)
     {
         PlayerController->SetInputMode(FInputModeGameOnly());
+        if (APlayerVehiclePawn *PlayerVehiclePawn = Cast<APlayerVehiclePawn>(PlayerController->GetPawnOrSpectator()))
+        {
+            PlayerVehiclePawn->SetLockHandbrakeState(true);
+        }
     }
 
     // Bind ChceckpointReachEvent
@@ -52,10 +71,45 @@ void ARacingGameMode::BeginPlay()
             ACustomPlayerState *CustomPlayerState = Cast<ACustomPlayerState>(PlayerState);
             if (CustomPlayerState)
             {
-                CustomPlayerState->SetupRacingData(FoundCheckpoints.Num());
+                CustomPlayerState->SetupRacingData(FoundCheckpoints.Num(), this);
             }
         }
     }
+
+    // Event for UI
+    StartGame();
+
+    // Race Start Delay
+    bIsRaceActive = false;
+    RaceTimer = 0.f;
+    FTimerHandle RaceStartTimerHandle;
+    FTimerDelegate RaceStartTimerDlegate = FTimerDelegate::CreateUObject(this, &ARacingGameMode::HandleRaceStart);
+    GetWorldTimerManager().SetTimer(RaceStartTimerHandle, RaceStartTimerDlegate, StartDelay, false);
+}
+
+void ARacingGameMode::HandleRaceStart()
+{
+    // Enabled Input
+    if (APlayerVehiclePawn *PlayerVehiclePawn = Cast<APlayerVehiclePawn>(UGameplayStatics::GetPlayerPawn(this, 0)))
+    {
+        PlayerVehiclePawn->SetLockHandbrakeState(false);
+    }
+
+    // Start Timer
+    bIsRaceActive = true;
+
+    // Event for UI
+    StartRace();
+}
+
+float ARacingGameMode::GetRacingTime() const
+{
+    return RaceTimer;
+}
+
+float ARacingGameMode::GetStartDelayTime() const
+{
+    return StartDelay;
 }
 
 void ARacingGameMode::HandlePlayerCompletLap(ACustomPlayerState *PlayerState)
@@ -65,7 +119,7 @@ void ARacingGameMode::HandlePlayerCompletLap(ACustomPlayerState *PlayerState)
         if (APlayerController *PlayerController = PlayerState->GetPlayerController())
         {
             PlayerController->SetInputMode(FInputModeUIOnly());
-            if(APawn* Pawn = PlayerController->GetPawnOrSpectator())
+            if (APawn *Pawn = PlayerController->GetPawnOrSpectator())
             {
                 Pawn->Destroy();
             }

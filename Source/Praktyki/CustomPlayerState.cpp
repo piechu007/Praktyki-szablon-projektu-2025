@@ -4,8 +4,9 @@
 #include "RacingGameMode.h"
 #include "Engine/World.h"
 
-void ACustomPlayerState::SetupRacingData(int32 NewChecpointCount)
+void ACustomPlayerState::SetupRacingData(int32 NewChecpointCount, ARacingGameMode *GameMode)
 {
+    RacingGameMode = GameMode;
     CompletedLaps = 0;
     ChecpointCount = NewChecpointCount;
     LastCheckpoint = 0;
@@ -18,12 +19,20 @@ void ACustomPlayerState::SetupRacingData(int32 NewChecpointCount)
 
 float ACustomPlayerState::GetCurrentTotalTime()
 {
-    return GetWorld()->GetTimeSeconds();
+    if (RacingGameMode)
+    {
+        return RacingGameMode->GetRacingTime();
+    }
+    return 0.f;
 }
 
 float ACustomPlayerState::GetCurrentLapTime()
 {
-    return GetWorld()->GetTimeSeconds() - TotalTime;
+    if (RacingGameMode)
+    {
+        return RacingGameMode->GetRacingTime() - TotalTime;
+    }
+    return 0.f;
 }
 
 FString ACustomPlayerState::GetCurrentTotalTimeText()
@@ -108,7 +117,7 @@ void ACustomPlayerState::CheckpointReached(int32 NewCheckpointIndex, bool bFinis
         }
     }
     LastCheckpoint = NewCheckpointIndex;
-    
+
     /*FString log = TEXT("CheckpointReached ") + FString::FromInt(NewCheckpointIndex);
     log += TEXT("\n CorrectCheckpointsReached:  ");
     for (int32 index : CorrectCheckpointsReached)
@@ -131,13 +140,12 @@ bool ACustomPlayerState::CheckNextCheckpoint(int32 NewCheckpointIndex)
 void ACustomPlayerState::LapCompleted()
 {
     CompletedLaps++;
-    LapTimes.Add(GetWorld()->GetTimeSeconds() - TotalTime);
-    TotalTime = GetWorld()->GetTimeSeconds();
+    LapTimes.Add(RacingGameMode->GetRacingTime() - TotalTime);
+    TotalTime = RacingGameMode->GetRacingTime();
 
-    ARacingGameMode *GameMode = Cast<ARacingGameMode>(GetWorld()->GetAuthGameMode());
-    if (GameMode)
+    if (RacingGameMode)
     {
-        GameMode->HandlePlayerCompletLap(this);
+        RacingGameMode->HandlePlayerCompletLap(this);
     }
 }
 
@@ -151,5 +159,3 @@ FString ACustomPlayerState::FloatTimeToTextTime(float TimeInSeconds)
 
     return FString::Printf(TEXT("%02d:%02d.%02d"), Minutes, Seconds, Hundredths);
 }
-
-

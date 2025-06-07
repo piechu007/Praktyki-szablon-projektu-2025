@@ -21,6 +21,8 @@ public:
 	APlayerVehiclePawn();
 	virtual void Tick(float DeltaTime) override;
 
+	void SetLockHandbrakeState(bool bLockHandbake);
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -56,6 +58,8 @@ protected:
 private:
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 	class USpringArmComponent* CameraBoom;
+
+	bool bLockHandbreak = true;
 
 	class APlayerController* VehiclePlayerController;
 };
