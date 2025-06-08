@@ -10,6 +10,7 @@ void ACustomPlayerState::SetupRacingData(int32 NewChecpointCount, ARacingGameMod
     CompletedLaps = 0;
     ChecpointCount = NewChecpointCount;
     LastCheckpoint = 0;
+    BestLapIndex = 0;
     CorrectCheckpointsReached.Empty();
     CorrectCheckpointsReached.Add(0);
     WrongCheckpointsReached.Empty();
@@ -42,6 +43,10 @@ FString ACustomPlayerState::GetCurrentTotalTimeText()
 
 FString ACustomPlayerState::GetCurrentLapTimeText()
 {
+    if(bLapFailed)
+    {
+        return FloatTimeToTextTime(-1.f);
+    }
     return FloatTimeToTextTime(GetCurrentLapTime());
 }
 
@@ -55,11 +60,16 @@ TArray<FString> ACustomPlayerState::GetAllLapTimesText()
     return AllLapTimesText;
 }
 
-int32 ACustomPlayerState::GetBestLapIndex()
+FString ACustomPlayerState::GetBestLapTimeText()
+{
+    return FloatTimeToTextTime(LapTimes[BestLapIndex]);
+}
+
+void ACustomPlayerState::UpdateBestLapIndex()
 {
     if (LapTimes.Num() == 0)
     {
-        return 0;
+        return;
     }
 
     int32 MinIndex = 0;
@@ -67,14 +77,14 @@ int32 ACustomPlayerState::GetBestLapIndex()
 
     for (int32 i = 1; i < LapTimes.Num(); i++)
     {
-        if (LapTimes[i] < MinTime)
+        if ((LapTimes[i] < MinTime && LapTimes[i] > 0.f) || MinTime < -0.1f)// BeterLapTime or MinIndex Lap Was Failed
         {
             MinTime = LapTimes[i];
             MinIndex = i;
         }
     }
 
-    return MinIndex;
+    BestLapIndex = MinIndex;
 }
 
 void ACustomPlayerState::CheckpointReached(int32 NewCheckpointIndex, bool bFinishLine)
@@ -137,11 +147,31 @@ bool ACustomPlayerState::CheckNextCheckpoint(int32 NewCheckpointIndex)
     return false;
 }
 
+void ACustomPlayerState::LapFailed()
+{
+    if(!bLapFailed)
+    {
+        bLapFailed = true;
+        return true;
+    }
+}
+
+
 void ACustomPlayerState::LapCompleted()
 {
     CompletedLaps++;
-    LapTimes.Add(RacingGameMode->GetRacingTime() - TotalTime);
+    if(bLapFailed)
+    {
+        LapTimes.Add(-1.f);
+    }
+    else
+    {
+        LapTimes.Add(RacingGameMode->GetRacingTime() - TotalTime);
+    }
+
     TotalTime = RacingGameMode->GetRacingTime();
+    UpdateBestLapIndex();
+    bLapFailed = false;
 
     if (RacingGameMode)
     {
@@ -151,6 +181,11 @@ void ACustomPlayerState::LapCompleted()
 
 FString ACustomPlayerState::FloatTimeToTextTime(float TimeInSeconds)
 {
+    if(TimeInSeconds < -0.1f)
+    {
+        return "Failed";
+    }
+
     int32 TotalSeconds = FMath::FloorToInt(TimeInSeconds);
     int32 Minutes = TotalSeconds / 60;
     int32 Seconds = TotalSeconds % 60;

@@ -7,6 +7,7 @@
 #include "EnhancedInputComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "ChaosVehicleMovementComponent.h"
+#include "ChaosWheeledVehicleMovementComponent.h"
 
 APlayerVehiclePawn::APlayerVehiclePawn()
 {
@@ -37,6 +38,25 @@ void APlayerVehiclePawn::BeginPlay()
 		}
 	}
 }
+
+UActorComponent* APlayerVehiclePawn::CreateNewComponet(TSubclassOf<UActorComponent> ComponentClass)
+{
+	UActorComponent* NewComponent = NewObject<UActorComponent>(this, ComponentClass);
+    if (NewComponent)
+    {
+        NewComponent->RegisterComponent();
+		if (USceneComponent* NewSceneComponent = Cast<USceneComponent>(NewComponent))
+		{
+			NewSceneComponent->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+		}
+        NewComponent->OnComponentCreated();
+        NewComponent->Activate(true);
+        return NewComponent;
+    }
+
+	return nullptr;
+}
+
 
 void APlayerVehiclePawn::SetupPlayerInputComponent(UInputComponent *PlayerInputComponent)
 {
@@ -112,3 +132,9 @@ void APlayerVehiclePawn::Tick(float DeltaTime)
 		GetVehicleMovementComponent()->SetHandbrakeInput(true);
 	}
 }
+
+UChaosWheeledVehicleMovementComponent* APlayerVehiclePawn::GetChaosWheeledVehicleMovementComponent() const
+{
+	return Cast<UChaosWheeledVehicleMovementComponent>(GetVehicleMovementComponent());
+}
+

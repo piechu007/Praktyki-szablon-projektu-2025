@@ -19,6 +19,7 @@ class PRAKTYKI_API ACustomPlayerState : public APlayerState
 public:
 	void SetupRacingData(int32 NewChecpointCount, ARacingGameMode *GameMode);
 	void CheckpointReached(int32 NewCheckpointIndex, bool bFinishLine);
+	bool LapFailed();
 
 	UFUNCTION(BlueprintPure)
 	int32 GetCompletedLaps() const { return CompletedLaps; }
@@ -33,7 +34,9 @@ public:
 	UFUNCTION(BlueprintPure)
 	TArray<FString> GetAllLapTimesText();
 	UFUNCTION(BlueprintPure)
-	int32 GetBestLapIndex();
+	int32 GetBestLapIndex() const { return BestLapIndex; }
+	UFUNCTION(BlueprintPure)
+	FString GetBestLapTimeText();
 
 private:
 	ARacingGameMode *RacingGameMode;
@@ -47,6 +50,10 @@ private:
 
 	float TotalTime;
 	TArray<float> LapTimes;
+	int32 BestLapIndex;
+	bool bLapFailed;
+
+	void UpdateBestLapIndex();
 
 	void LapCompleted();
 

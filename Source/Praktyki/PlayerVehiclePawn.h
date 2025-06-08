@@ -8,6 +8,8 @@
 #include "PlayerVehiclePawn.generated.h"
 
 class UInputAction;
+class UChaosWheeledVehicleMovementComponent;
+class UActorComponent;
 
 /**
  * 
@@ -21,7 +23,12 @@ public:
 	APlayerVehiclePawn();
 	virtual void Tick(float DeltaTime) override;
 
-	void SetLockHandbrakeState(bool bLockHandbake);
+	void SetLockHandbrakeState(bool bNewLockHandbake);
+
+	UFUNCTION(BlueprintPure)
+	UChaosWheeledVehicleMovementComponent* GetChaosWheeledVehicleMovementComponent() const;
+
+	UActorComponent* CreateNewComponet(TSubclassOf<UActorComponent> ComponentClass);
 
 protected:
 	virtual void BeginPlay() override;

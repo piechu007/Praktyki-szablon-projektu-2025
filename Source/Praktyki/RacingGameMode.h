@@ -46,6 +46,8 @@ protected:
 	void StartRace();
 	UFUNCTION(BlueprintImplementableEvent)
 	void GameOver();
+	UFUNCTION(BlueprintImplementableEvent)
+	void LapCompleted();
 
 	UPROPERTY(BlueprintReadOnly)
 	float StartDelay = 5.f;
