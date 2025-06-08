@@ -27,7 +27,8 @@
 			"util": "cpp",
 			"cmath": "cpp",
 			"complex": "cpp",
-			"valarray": "cpp"
+			"valarray": "cpp",
+			"fft": "cpp"
 		}
 	},
 	"extensions": {

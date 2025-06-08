@@ -147,15 +147,15 @@ bool ACustomPlayerState::CheckNextCheckpoint(int32 NewCheckpointIndex)
     return false;
 }
 
-void ACustomPlayerState::LapFailed()
+bool ACustomPlayerState::LapFailed()
 {
     if(!bLapFailed)
     {
         bLapFailed = true;
         return true;
     }
+    return false;
 }
-
 
 void ACustomPlayerState::LapCompleted()
 {

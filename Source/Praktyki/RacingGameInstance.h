@@ -22,4 +22,10 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Race Settings")
 	int32 SelectedLapsCount;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Race Settings")
+	FString SelectedMapName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Race Settings")
+	FString SelectedGameModeName;
 };
