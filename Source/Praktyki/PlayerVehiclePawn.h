@@ -10,6 +10,8 @@
 class UInputAction;
 class UChaosWheeledVehicleMovementComponent;
 class UActorComponent;
+class UVehicleSpringArmComponent;
+class UVehicleCameraComponent;
 
 /**
  * 
@@ -62,9 +64,15 @@ protected:
 	void SetLookUpInput(const FInputActionValue &Value);
 	void SetLookRightInput(const FInputActionValue &Value);
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Camera")
+	int32 CameraBoomsCount = 3;
+	UPROPERTY(VisibleAnywhere, Category = "Camera")
+	TArray<UVehicleSpringArmComponent*> CameraBooms;
+	UPROPERTY(VisibleAnywhere, Category = "Camera")
+	UVehicleCameraComponent *FollowCamera;
+
 private:
-	UPROPERTY(VisibleAnywhere, Category = Camera)
-	class USpringArmComponent* CameraBoom;
+	int32 CurrentCameraBoomIndex;
 
 	bool bLockHandbreak = true;
 

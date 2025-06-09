@@ -1,8 +1,8 @@
 // Copyright 2025 Teyon. All Rights Reserved.
 
 #include "PlayerVehiclePawn.h"
-#include "GameFramework/SpringArmComponent.h"
-#include "Camera/CameraComponent.h"
+#include "VehicleCameraComponent.h"
+#include "VehicleSpringArmComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -13,14 +13,23 @@ APlayerVehiclePawn::APlayerVehiclePawn()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
-	CameraBoom->SetupAttachment(GetMesh());
-	CameraBoom->TargetArmLength = 600.f;
-	// CameraBoom->bUsePawnControlRotation = true;
+	// FName ComponentName = *FString::Printf(TEXT("CameraBoom_%d"), 0);
+	// CameraBooms.Add(CreateDefaultSubobject<UVehicleSpringArmComponent>(ComponentName));
+	// CameraBooms[0]->SetupAttachment(GetMesh());
+	// CameraBooms[0]->TurnOff();
 
-	UCameraComponent *FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
-	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
-	// FollowCamera->bUsePawnControlRotation = false;
+	for (int32 i = 0; i < CameraBoomsCount; i++)
+	{
+		FName ComponentName = *FString::Printf(TEXT("CameraBoom_%d"), i);
+		CameraBooms.Add(CreateDefaultSubobject<UVehicleSpringArmComponent>(ComponentName));
+		CameraBooms[i]->SetupAttachment(GetMesh());
+		CameraBooms[i]->TurnOff();
+	}
+
+	FollowCamera = CreateDefaultSubobject<UVehicleCameraComponent>(TEXT("FollowCamera"));
+
+	CurrentCameraBoomIndex = 0;
+	CameraBooms[CurrentCameraBoomIndex]->TurnOn(FollowCamera);
 }
 
 void APlayerVehiclePawn::BeginPlay()
@@ -39,24 +48,23 @@ void APlayerVehiclePawn::BeginPlay()
 	}
 }
 
-UActorComponent* APlayerVehiclePawn::CreateNewComponet(TSubclassOf<UActorComponent> ComponentClass)
+UActorComponent *APlayerVehiclePawn::CreateNewComponet(TSubclassOf<UActorComponent> ComponentClass)
 {
-	UActorComponent* NewComponent = NewObject<UActorComponent>(this, ComponentClass);
-    if (NewComponent)
-    {
-        NewComponent->RegisterComponent();
-		if (USceneComponent* NewSceneComponent = Cast<USceneComponent>(NewComponent))
+	UActorComponent *NewComponent = NewObject<UActorComponent>(this, ComponentClass);
+	if (NewComponent)
+	{
+		NewComponent->RegisterComponent();
+		if (USceneComponent *NewSceneComponent = Cast<USceneComponent>(NewComponent))
 		{
 			NewSceneComponent->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
 		}
-        NewComponent->OnComponentCreated();
-        NewComponent->Activate(true);
-        return NewComponent;
-    }
+		NewComponent->OnComponentCreated();
+		NewComponent->Activate(true);
+		return NewComponent;
+	}
 
 	return nullptr;
 }
-
 
 void APlayerVehiclePawn::SetupPlayerInputComponent(UInputComponent *PlayerInputComponent)
 {
@@ -106,17 +114,21 @@ void APlayerVehiclePawn::SetHandbrakeCompletedInput(const FInputActionValue &Val
 
 void APlayerVehiclePawn::SetToggleCameraInput(const FInputActionValue &Value)
 {
-	// TODO: ToggleCamera
+	CameraBooms[CurrentCameraBoomIndex]->TurnOff();
+	CurrentCameraBoomIndex = (CurrentCameraBoomIndex + 1) % CameraBoomsCount;
+	CameraBooms[CurrentCameraBoomIndex]->TurnOn(FollowCamera);
 }
 
 void APlayerVehiclePawn::SetLookUpInput(const FInputActionValue &Value)
 {
-	CameraBoom->AddRelativeRotation(FRotator(Value.Get<float>(), 0.0f, 0.0f));
+	CameraBooms[CurrentCameraBoomIndex]->SetLookUpInput(Value.Get<float>());
+	// CameraBoom->AddRelativeRotation(FRotator(Value.Get<float>(), 0.0f, 0.0f));
 }
 
 void APlayerVehiclePawn::SetLookRightInput(const FInputActionValue &Value)
 {
-	CameraBoom->AddRelativeRotation(FRotator(0.0f, Value.Get<float>(), 0.0f));
+	CameraBooms[CurrentCameraBoomIndex]->SetLookRightInput(Value.Get<float>());
+	// CameraBoom->AddRelativeRotation(FRotator(0.0f, Value.Get<float>(), 0.0f));
 }
 
 void APlayerVehiclePawn::SetLockHandbrakeState(bool bNewLockHandbake)
@@ -133,8 +145,7 @@ void APlayerVehiclePawn::Tick(float DeltaTime)
 	}
 }
 
-UChaosWheeledVehicleMovementComponent* APlayerVehiclePawn::GetChaosWheeledVehicleMovementComponent() const
+UChaosWheeledVehicleMovementComponent *APlayerVehiclePawn::GetChaosWheeledVehicleMovementComponent() const
 {
 	return Cast<UChaosWheeledVehicleMovementComponent>(GetVehicleMovementComponent());
 }
-
