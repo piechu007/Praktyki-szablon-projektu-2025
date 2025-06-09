@@ -15,7 +15,6 @@ void UVehicleSpringArmComponent::TurnOn(UCameraComponent *CameraComponent)
     SetRelativeRotation(StartRotation);
 
     CameraComponent->AttachToComponent(this, FAttachmentTransformRules::KeepRelativeTransform);
-    CameraComponent->SetupAttachment(this, USpringArmComponent::SocketName);
 }
 
 void UVehicleSpringArmComponent::TurnOff()

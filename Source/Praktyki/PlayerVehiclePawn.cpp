@@ -2,6 +2,7 @@
 
 #include "PlayerVehiclePawn.h"
 #include "VehicleCameraComponent.h"
+#include "EngineAudioComponent.h"
 #include "VehicleSpringArmComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
@@ -12,11 +13,6 @@
 APlayerVehiclePawn::APlayerVehiclePawn()
 {
 	PrimaryActorTick.bCanEverTick = true;
-
-	// FName ComponentName = *FString::Printf(TEXT("CameraBoom_%d"), 0);
-	// CameraBooms.Add(CreateDefaultSubobject<UVehicleSpringArmComponent>(ComponentName));
-	// CameraBooms[0]->SetupAttachment(GetMesh());
-	// CameraBooms[0]->TurnOff();
 
 	for (int32 i = 0; i < CameraBoomsCount; i++)
 	{
@@ -30,13 +26,15 @@ APlayerVehiclePawn::APlayerVehiclePawn()
 
 	CurrentCameraBoomIndex = 0;
 	CameraBooms[CurrentCameraBoomIndex]->TurnOn(FollowCamera);
+
+	EngineSound = CreateDefaultSubobject<UEngineAudioComponent>(TEXT("EngineSound"));
+	EngineSound->SetupAttachment(GetMesh(), TEXT("EngineExtAudioSourceComponentSocket"));
 }
 
 void APlayerVehiclePawn::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// Setup TankMapingContext
 	VehiclePlayerController = Cast<APlayerController>(GetController());
 	if (VehiclePlayerController)
 	{

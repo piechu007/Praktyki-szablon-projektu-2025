@@ -12,9 +12,10 @@ class UChaosWheeledVehicleMovementComponent;
 class UActorComponent;
 class UVehicleSpringArmComponent;
 class UVehicleCameraComponent;
+class UEngineAudioComponent;
 
 /**
- * 
+ *
  */
 UCLASS()
 class PRAKTYKI_API APlayerVehiclePawn : public AWheeledVehiclePawn
@@ -28,14 +29,14 @@ public:
 	void SetLockHandbrakeState(bool bNewLockHandbake);
 
 	UFUNCTION(BlueprintPure)
-	UChaosWheeledVehicleMovementComponent* GetChaosWheeledVehicleMovementComponent() const;
+	UChaosWheeledVehicleMovementComponent *GetChaosWheeledVehicleMovementComponent() const;
 
-	UActorComponent* CreateNewComponet(TSubclassOf<UActorComponent> ComponentClass);
+	UActorComponent *CreateNewComponet(TSubclassOf<UActorComponent> ComponentClass);
 
 protected:
 	virtual void BeginPlay() override;
 
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	virtual void SetupPlayerInputComponent(class UInputComponent *PlayerInputComponent) override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	class UInputMappingContext *VehicleMapingContext;
@@ -67,15 +68,16 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Camera")
 	int32 CameraBoomsCount = 3;
 	UPROPERTY(VisibleAnywhere, Category = "Camera")
-	TArray<UVehicleSpringArmComponent*> CameraBooms;
+	TArray<UVehicleSpringArmComponent *> CameraBooms;
 	UPROPERTY(VisibleAnywhere, Category = "Camera")
 	UVehicleCameraComponent *FollowCamera;
+	UPROPERTY(VisibleAnywhere, Category = "Audio")
+	UEngineAudioComponent *EngineSound;
 
 private:
 	int32 CurrentCameraBoomIndex;
 
 	bool bLockHandbreak = true;
 
-	class APlayerController* VehiclePlayerController;
+	class APlayerController *VehiclePlayerController;
 };
-

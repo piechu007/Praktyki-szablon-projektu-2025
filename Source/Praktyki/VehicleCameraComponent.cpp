@@ -27,21 +27,18 @@ void UVehicleCameraComponent::TickComponent(float DeltaTime, ELevelTick TickType
 {
     Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-    if(!VehicleMovementComponent)
-    {
-        SetFieldOfView(MinFOV);
-        return;
-    }
-
-    float Speed = VehicleMovementComponent->GetForwardSpeed();
     float FOVScale;
-    if (Speed > SpeedForMaxFOV)
+
+    if (VehicleMovementComponent)
     {
-        FOVScale = 1.f;
+        float Speed = VehicleMovementComponent->GetForwardSpeed();
+        FOVScale = Speed/SpeedForMaxFOV;
+        FOVScale = FMath::Clamp(FOVScale, 0.f, 1.f);
     }
     else
     {
-        FOVScale = Speed/SpeedForMaxFOV;
+        FOVScale = 1.f;
     }
+
     SetFieldOfView(MinFOV + MaxExtraFOV * FOVScale);
 }
