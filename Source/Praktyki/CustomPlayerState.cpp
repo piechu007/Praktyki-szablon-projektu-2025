@@ -62,6 +62,10 @@ TArray<FString> ACustomPlayerState::GetAllLapTimesText()
 
 FString ACustomPlayerState::GetBestLapTimeText()
 {
+    if(CompletedLaps == 0)
+    {
+        return FloatTimeToTextTime(0.f);
+    }
     return FloatTimeToTextTime(LapTimes[BestLapIndex]);
 }
 
