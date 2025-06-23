@@ -54,7 +54,7 @@ protected:
 	virtual void BeginPlay() override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Race Settings");
-	TArray<TSubclassOf<APlayerVehiclePawn>> AvailablePlayerVehiclePawn;
+	TArray<TSubclassOf<APawn>> AvailablePlayerVehiclePawn;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Race Settings")
     TArray<UTexture2D*> VehicleImages;
 
