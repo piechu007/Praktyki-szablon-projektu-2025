@@ -18,7 +18,7 @@ ACustomPlayerVehiclePawn::ACustomPlayerVehiclePawn()
 	// Movment
 	VehicleMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Vehicle Mesh"));
 	RootComponent = VehicleMesh;
-	VehicleMovement = CreateDefaultSubobject<UCustomVehicleMovementComponent>(TEXT("Vehicle Movement"));
+	CustomVehicleMovement = CreateDefaultSubobject<UCustomVehicleMovementComponent>(TEXT("Vehicle Movement"));
 
 	// Cameras
 	for (int32 i = 0; i < CameraBoomsCount; i++)
@@ -53,9 +53,7 @@ void ACustomPlayerVehiclePawn::BeginPlay()
 		}
 	}
 
-	//WheelSlotComponents = GetComponentsByClass(UWheelSlotComponent::StaticClass());
 	GetComponents<UWheelSlotComponent>(WheelSlotComponents);
-	VehicleMovement->Setup(this, WheelSlotComponents);
 }
 
 UActorComponent *ACustomPlayerVehiclePawn::CreateNewComponet(TSubclassOf<UActorComponent> ComponentClass)
@@ -99,27 +97,27 @@ void ACustomPlayerVehiclePawn::SetupPlayerInputComponent(UInputComponent *Player
 
 void ACustomPlayerVehiclePawn::SetSteeringInput(const FInputActionValue &Value)
 {
-	// GetVehicleMovementComponent()->SetSteeringInput(Value.Get<float>());// TODO: refactor
+	CustomVehicleMovement->SetSteeringInput(Value.Get<float>());
 }
 
 void ACustomPlayerVehiclePawn::SetThrottleInput(const FInputActionValue &Value)
 {
-	// GetVehicleMovementComponent()->SetThrottleInput(Value.Get<float>());// TODO: refactor
+	CustomVehicleMovement->SetThrottleInput(Value.Get<float>());
 }
 
 void ACustomPlayerVehiclePawn::SetBrakeInput(const FInputActionValue &Value)
 {
-	// GetVehicleMovementComponent()->SetBrakeInput(Value.Get<float>());// TODO: refactor
+	CustomVehicleMovement->SetBrakeInput(Value.Get<float>());
 }
 
 void ACustomPlayerVehiclePawn::SetHandbrakeTriggeredInput(const FInputActionValue &Value)
 {
-	// GetVehicleMovementComponent()->SetHandbrakeInput(true);// TODO: refactor
+	CustomVehicleMovement->SetHandbrakeInput(true);
 }
 
 void ACustomPlayerVehiclePawn::SetHandbrakeCompletedInput(const FInputActionValue &Value)
 {
-	// GetVehicleMovementComponent()->SetHandbrakeInput(false);// TODO: refactor
+	CustomVehicleMovement->SetHandbrakeInput(false);
 }
 
 void ACustomPlayerVehiclePawn::SetToggleCameraInput(const FInputActionValue &Value)

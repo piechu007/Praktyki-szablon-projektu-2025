@@ -78,7 +78,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Mesh")
 	USkeletalMeshComponent *VehicleMesh;
 	UPROPERTY(VisibleAnywhere, Category = "Movment")
-	UCustomVehicleMovementComponent *VehicleMovement;
+	UCustomVehicleMovementComponent *CustomVehicleMovement;
 	UPROPERTY(VisibleAnywhere, Category = "Movment")
 	TArray<UWheelSlotComponent*> WheelSlotComponents;
 

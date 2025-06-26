@@ -17,8 +17,6 @@ public:
 	// Sets default values for this component's properties
 	UWheelSlotComponent();
 
-	FVector GetForce(float DeltaTime);
-
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
@@ -27,6 +25,7 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+	// Params
 	UPROPERTY(EditAnywhere, Category = "Suspension") 
 	float SpringStrenght = 1000000.0f;
 	UPROPERTY(EditAnywhere, Category = "Suspension") 
@@ -39,18 +38,45 @@ public:
 	float SpringMaxDownDistance = 20.0f;
 	UPROPERTY(EditAnywhere, Category = "Wheel") 
 	float WheelRadius = 32.0f;
+	UPROPERTY(EditAnywhere, Category = "Wheel") 
+	bool bWheelDrive = true;
+	UPROPERTY(EditAnywhere, Category = "Wheel") 
+	bool bWheelSteering = false;
+	UPROPERTY(EditAnywhere, Category = "Wheel") 
+	bool bWheelBrake = true;
+	UPROPERTY(EditAnywhere, Category = "Wheel") 
+	bool bWheelHandbrake = true;
+	UPROPERTY(EditAnywhere, Category = "Friction") 
+	float StaticFriction = 1.0f;
+	UPROPERTY(EditAnywhere, Category = "Friction") 
+	float KineticFriction = 0.6f;
+	UPROPERTY(EditAnywhere, Category = "Brake") 
+	float BrakeingForce = 10000.f;
 
-
-private:
-	bool Raycast(FHitResult& OutHit);
-
-	void UpdateWheelLocationAndVelocity(FHitResult& HitResult, float DeltaTime);
-
-	FVector GetSuspertionForce(FHitResult& HitResult, float DeltaTime);
-	FVector GetSideForce(FHitResult& HitResult, float DeltaTime);
-	FVector GetForwardForce(FHitResult& HitResult, float DeltaTime);
-
+	// Local Variable
+	UPROPERTY(BlueprintReadOnly) 
 	FVector LastWheelLocation;
+	UPROPERTY(BlueprintReadOnly) 
+	FVector LastWheelWorldLocation;
+	UPROPERTY(BlueprintReadOnly) 
 	FVector NewWheelLocation;
+	UPROPERTY(BlueprintReadOnly) 
+	FVector NewWheelWorldLocation;
+	UPROPERTY(BlueprintReadOnly) 
 	FVector WheelVelocity;
+	UPROPERTY(BlueprintReadOnly) 
+	FVector WheelWorldVelocity;
+	UPROPERTY(BlueprintReadOnly) 
+	FHitResult CurrentHitResult;
+	UPROPERTY(BlueprintReadOnly) 
+	bool bSlipping;
+
+	bool Raycast();
+	void UpdateWheelLocationAndVelocity(float DeltaTime);
+	void SaveNewWheelLocationAsLast();
+	FVector GetForce(float DeltaTime);
+
+	FVector GetSuspertionForce(float DeltaTime);
+	FVector GetSideForce(float DeltaTime);
+	FVector GetForwardForce(float DeltaTime);
 };

@@ -32,16 +32,16 @@ FVector UWheelSlotComponent::GetForce(float DeltaTime)
 	FVector Force = FVector::ZeroVector;
 
 	FHitResult HitResult;
-	if (Raycast(HitResult))
+	if (Raycast())
 	{
-		UpdateWheelLocationAndVelocity(HitResult, DeltaTime);
-		Force += GetSuspertionForce(HitResult, DeltaTime);
-		Force += GetSideForce(HitResult, DeltaTime);
-		Force += GetForwardForce(HitResult, DeltaTime);
+		UpdateWheelLocationAndVelocity(DeltaTime);
+		Force += GetSuspertionForce(DeltaTime);
+		Force += GetSideForce(DeltaTime);
+		Force += GetForwardForce(DeltaTime);
 	}
 	else
 	{
-		UpdateWheelLocationAndVelocity(HitResult, DeltaTime);
+		UpdateWheelLocationAndVelocity(DeltaTime);
 	}
 
 	LastWheelLocation = NewWheelLocation;
@@ -49,57 +49,55 @@ FVector UWheelSlotComponent::GetForce(float DeltaTime)
 	return Force;
 }
 
-bool UWheelSlotComponent::Raycast(FHitResult &OutHit)
+bool UWheelSlotComponent::Raycast()
 {
-	float RayDistance = WheelRadius + SpringMaxDownDistance;
+	float RayDistance = WheelRadius + SpringDefaultDistance;
 
 	FVector Start = GetComponentLocation();
 	FVector End = Start - (GetUpVector() * RayDistance);
+	
+	// ==================  DEBUG  ========================
+	//FVector StartDraw = GetComponentLocation();
+	//DrawDebugSphere(GetWorld(), StartDraw + NewWheelLocation, 1, 10, FColor::Red, false, 0.0002f);
 
-	bool HasHit = GetWorld()->LineTraceSingleByChannel(OutHit, Start, End, ECC_GameTraceChannel1, FCollisionQueryParams(), FCollisionResponseParams());
-
-	if (HasHit)
-	{
-		// FString ComponetName = GetName();
-		// FString HitActorName = OutHit.GetActor()->GetActorNameOrLabel();
-		// float Time = GetWorld()->TimeSeconds;
-		// UE_LOG(LogTemp, Warning, TEXT("%s    hit         < %s >    [ %f ]"), *ComponetName, *HitActorName, Time);
-		// DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 0.0001f, 0, 2.0f); // 0.1 time 2.0 thickness
-	}
-	else
-	{
-		// DrawDebugLine(GetWorld(), Start, End, FColor::Green, false, 0.0001f, 0, 2.0f); // 0.1 time 2.0 thickness
-	}
-
-	return HasHit;
+	return GetWorld()->LineTraceSingleByChannel(CurrentHitResult, Start, End, ECC_GameTraceChannel1, FCollisionQueryParams(), FCollisionResponseParams());;
 }
 
-void UWheelSlotComponent::UpdateWheelLocationAndVelocity(FHitResult &HitResult, float DeltaTime)
+void UWheelSlotComponent::UpdateWheelLocationAndVelocity(float DeltaTime)
 {
-	if (HitResult.bBlockingHit)
+	if (CurrentHitResult.bBlockingHit)
 	{
-		//NewWheelLocation = GetComponentLocation() - GetUpVector() * (HitResult.Distance - WheelRadius);
-		NewWheelLocation = - GetUpVector() * (HitResult.Distance - WheelRadius);
+		NewWheelLocation = - GetUpVector() * (CurrentHitResult.Distance - WheelRadius);
 	}
 	else
 	{
-		//NewWheelLocation = GetComponentLocation() - GetUpVector() * (SpringMaxDownDistance);
 		NewWheelLocation = - GetUpVector() * (SpringMaxDownDistance);
 	}
-	WheelVelocity = (NewWheelLocation - LastWheelLocation) / DeltaTime;
 
-	// DEBUG
-	FVector StartDraw = GetComponentLocation();
-	DrawDebugSphere(GetWorld(), StartDraw + NewWheelLocation, 1, 10, FColor::Red, false, 0.0002f);
-	DrawDebugSphere(GetWorld(), StartDraw + LastWheelLocation, 1, 10, FColor::White, false, 0.0002f);
-	DrawDebugSphere(GetWorld(), StartDraw + NewWheelLocation, WheelRadius, 20, FColor::Red, false, 0.0002f);
+	NewWheelWorldLocation = NewWheelLocation + GetComponentLocation();
+
+	WheelVelocity = (NewWheelLocation - LastWheelLocation) / DeltaTime;
+	WheelWorldVelocity = (NewWheelWorldLocation - LastWheelWorldLocation) / DeltaTime;
+
+	// ==================  DEBUG  ========================
+	//FVector StartDraw = GetComponentLocation();
+	DrawDebugSphere(GetWorld(), CurrentHitResult.Location, 5, 4, FColor::Black, false, 1.f);
+	//DrawDebugSphere(GetWorld(), StartDraw + NewWheelLocation, 1, 10, FColor::Red, false, 0.0002f);
+	//DrawDebugSphere(GetWorld(), StartDraw + LastWheelLocation, 1, 10, FColor::White, false, 0.0002f);
+	//DrawDebugSphere(GetWorld(), StartDraw + NewWheelLocation, WheelRadius, 20, FColor::Red, false, 0.0002f);
 }
 
-FVector UWheelSlotComponent::GetSuspertionForce(FHitResult &HitResult, float DeltaTime)
+void UWheelSlotComponent::SaveNewWheelLocationAsLast()
+{
+	LastWheelLocation = NewWheelLocation;
+	LastWheelWorldLocation = NewWheelWorldLocation;
+}
+
+FVector UWheelSlotComponent::GetSuspertionForce(float DeltaTime)
 {
 	FVector SpringDir = GetUpVector();
 
-	float SprinOffset = SpringDefaultDistance + WheelRadius - HitResult.Distance;
+	float SprinOffset = SpringDefaultDistance + WheelRadius - CurrentHitResult.Distance;
 
 	float SprinVelocity = FVector::DotProduct(SpringDir, WheelVelocity);
 
@@ -119,14 +117,14 @@ FVector UWheelSlotComponent::GetSuspertionForce(FHitResult &HitResult, float Del
 	return ForceVector;
 }
 
-FVector UWheelSlotComponent::GetSideForce(FHitResult &HitResult, float DeltaTime)
+FVector UWheelSlotComponent::GetSideForce(float DeltaTime)
 {
 	FVector Force = FVector::ZeroVector;
 
 	return Force;
 }
 
-FVector UWheelSlotComponent::GetForwardForce(FHitResult &HitResult, float DeltaTime)
+FVector UWheelSlotComponent::GetForwardForce(float DeltaTime)
 {
 	FVector Force = FVector::ZeroVector;
 
