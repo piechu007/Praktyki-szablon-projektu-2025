@@ -20,6 +20,12 @@ ACustomPlayerVehiclePawn::ACustomPlayerVehiclePawn()
 	RootComponent = VehicleMesh;
 	CustomVehicleMovement = CreateDefaultSubobject<UCustomVehicleMovementComponent>(TEXT("Vehicle Movement"));
 
+	for (int32 i = 0; i < WheelSlotBoneNames.Num(); i++)
+	{
+		WheelSlotComponents.Add(CreateDefaultSubobject<UWheelSlotComponent>(WheelSlotNames[i]));
+		WheelSlotComponents[i]->SetupAttachment(VehicleMesh, WheelSlotBoneNames[i]);
+	}
+
 	// Cameras
 	for (int32 i = 0; i < CameraBoomsCount; i++)
 	{
@@ -153,10 +159,9 @@ void ACustomPlayerVehiclePawn::Tick(float DeltaTime)
 	}
 }
 
-UChaosWheeledVehicleMovementComponent *ACustomPlayerVehiclePawn::GetChaosWheeledVehicleMovementComponent() const
+UCustomVehicleMovementComponent *ACustomPlayerVehiclePawn::GetCustomVehicleMovementComponent() const
 {
-	return nullptr;
-	// return Cast<UChaosWheeledVehicleMovementComponent>(GetVehicleMovementComponent()); // TODO: refactor
+	return CustomVehicleMovement;
 }
 
 USkeletalMeshComponent *ACustomPlayerVehiclePawn::GetMesh()

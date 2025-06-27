@@ -29,7 +29,7 @@ public:
 	void SetLockHandbrakeState(bool bNewLockHandbake);
 
 	UFUNCTION(BlueprintPure)
-	UChaosWheeledVehicleMovementComponent *GetChaosWheeledVehicleMovementComponent() const;
+	UCustomVehicleMovementComponent *GetCustomVehicleMovementComponent() const;
 
 	UActorComponent *CreateNewComponet(TSubclassOf<UActorComponent> ComponentClass);
 
@@ -81,6 +81,10 @@ protected:
 	UCustomVehicleMovementComponent *CustomVehicleMovement;
 	UPROPERTY(VisibleAnywhere, Category = "Movment")
 	TArray<UWheelSlotComponent*> WheelSlotComponents;
+	UPROPERTY(VisibleAnywhere, Category = "Movment")
+	TArray<FName> WheelSlotBoneNames = {TEXT("suspension_back_left"),TEXT("suspension_back_right"),TEXT("suspension_front_left"),TEXT("suspension_front_right")};
+	UPROPERTY(VisibleAnywhere, Category = "Movment")
+	TArray<FName> WheelSlotNames = {TEXT("Wheel Slot RL"),TEXT("Wheel Slot RR"),TEXT("Wheel Slot FL"),TEXT("Wheel Slot FR")};
 
 private:
 	int32 CurrentCameraBoomIndex;

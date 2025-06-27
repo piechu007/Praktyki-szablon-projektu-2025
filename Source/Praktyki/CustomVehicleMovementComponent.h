@@ -25,6 +25,9 @@ public:
 	void SetBrakeInput(float Input);
 	void SetHandbrakeInput(bool bInput);
 
+	UFUNCTION(BlueprintPure)
+	float GetForwardVelocity() const { return ForwardVelocity; }
+
 	UPROPERTY(EditAnywhere, Category = "Engine")
 	float EngineForce = 10000.f;
 	UPROPERTY(EditAnywhere, Category = "Engine")
@@ -58,6 +61,10 @@ private:
 	void AddForcesFromAllWheels(float DeltaTime);
 	void UpdateAngleOfSteeringWheels();
 	FVector GetForceFromWheel(UWheelSlotComponent* WheelSlot, float DeltaTime);
+
+	void UpdateSpeed();
+
+	float ForwardVelocity = 0.f;
 
 	void SuspensionSpringForce();
 };

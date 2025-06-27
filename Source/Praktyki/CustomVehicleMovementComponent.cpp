@@ -30,7 +30,13 @@ void UCustomVehicleMovementComponent::TickComponent(float DeltaTime, ELevelTick 
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	UpdateAngleOfSteeringWheels();
+	UpdateSpeed();
 	AddForcesFromAllWheels(DeltaTime);
+
+	for (UWheelSlotComponent *WheelSlot : WheelSlots)
+	{
+		WheelSlot->RotateWheel(DeltaTime);
+	}
 }
 
 void UCustomVehicleMovementComponent::UpdateAngleOfSteeringWheels()
@@ -72,7 +78,8 @@ void UCustomVehicleMovementComponent::AddForcesFromAllWheels(float DeltaTime)
 			UE_LOG(LogTemp, Warning, TEXT("PlayerVehiclePawn->GetMesh() == nullptr"));
 			return;
 		}
-		PlayerVehiclePawn->GetMesh()->AddForceAtLocation(GetForceFromWheel(WheelSlot, DeltaTime), WheelSlot->NewWheelWorldLocation);
+		PlayerVehiclePawn->GetMesh()->AddForceAtLocation(GetForceFromWheel(WheelSlot, DeltaTime), WheelSlot->GetComponentLocation());
+		//PlayerVehiclePawn->GetMesh()->AddForceAtLocation(GetForceFromWheel(WheelSlot, DeltaTime), WheelSlot->NewWheelWorldLocation);
 	}
 }
 
@@ -96,13 +103,13 @@ FVector UCustomVehicleMovementComponent::GetForceFromWheel(UWheelSlotComponent *
 
 		// DEBUG
 		FVector StartDraw = WheelSlot->GetComponentLocation();
-		DrawDebugLine(GetWorld(), StartDraw, StartDraw + (SpringDir * ((SprinOffset * WheelSlot->SpringStrenght) - (SprinVelocity * WheelSlot->SpringDamper)) * 0.0002f), FColor::Purple, false, 0.0001f, 0, 2.0f); // All Suspertion
-		StartDraw += WheelSlot->GetForwardVector() * 10.f;
-		DrawDebugLine(GetWorld(), StartDraw, StartDraw + (SpringDir * SprinOffset * WheelSlot->SpringStrenght * 0.0002f), FColor::Blue, false, 0.001f, 0, 2.0f); // Spring
-		StartDraw += WheelSlot->GetForwardVector() * 10.f;
-		DrawDebugLine(GetWorld(), StartDraw, StartDraw + (SpringDir * -SprinVelocity * WheelSlot->SpringDamper * 0.0002f), FColor::Red, false, 0.001f, 0, 2.0f); // Damping
-		StartDraw += WheelSlot->GetForwardVector() * 10.f;
-		DrawDebugLine(GetWorld(), StartDraw, StartDraw + (SpringDir * 300000.f * 0.001f), FColor::White, false, 0.0002f, 0, 2.0f); // Gravity
+		DrawDebugLine(GetWorld(), StartDraw, StartDraw + (SpringDir * ((SprinOffset * WheelSlot->SpringStrenght) - (SprinVelocity * WheelSlot->SpringDamper)) * 0.001f), FColor::Purple, false, 0.0001f, 0, 2.0f); // All Suspertion
+		//StartDraw += WheelSlot->GetForwardVector() * 10.f;
+		//DrawDebugLine(GetWorld(), StartDraw, StartDraw + (SpringDir * SprinOffset * WheelSlot->SpringStrenght * 0.0002f), FColor::Blue, false, 0.001f, 0, 2.0f); // Spring
+		//StartDraw += WheelSlot->GetForwardVector() * 10.f;
+		//DrawDebugLine(GetWorld(), StartDraw, StartDraw + (SpringDir * -SprinVelocity * WheelSlot->SpringDamper * 0.0002f), FColor::Red, false, 0.001f, 0, 2.0f); // Damping
+		//StartDraw += WheelSlot->GetForwardVector() * 10.f;
+		//DrawDebugLine(GetWorld(), StartDraw, StartDraw + (SpringDir * 300000.f * 0.001f), FColor::White, false, 0.0002f, 0, 2.0f); // Gravity
 		// UE_LOG(LogTemp, Warning, TEXT("ForceVector.Size() = %f"), ForceVector.Size());
 	}
 
@@ -145,6 +152,12 @@ FVector UCustomVehicleMovementComponent::GetForceFromWheel(UWheelSlotComponent *
 
 	return Force;
 }
+
+void UCustomVehicleMovementComponent::UpdateSpeed()
+{
+	ForwardVelocity = FVector::DotProduct(PlayerVehiclePawn->GetMesh()->GetForwardVector(), PlayerVehiclePawn->GetVelocity());
+}
+
 
 void UCustomVehicleMovementComponent::SetThrottleInput(float Input)
 {

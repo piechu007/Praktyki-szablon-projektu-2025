@@ -7,6 +7,7 @@
 #include "WheelSlotComponent.generated.h"
 
 class UCustomVehicleMovementComponent;
+class UStaticMeshComponent;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class PRAKTYKI_API UWheelSlotComponent : public USceneComponent
@@ -16,6 +17,8 @@ class PRAKTYKI_API UWheelSlotComponent : public USceneComponent
 public:	
 	// Sets default values for this component's properties
 	UWheelSlotComponent();
+
+	virtual void OnRegister() override;
 
 protected:
 	// Called when the game starts
@@ -46,12 +49,17 @@ public:
 	bool bWheelBrake = true;
 	UPROPERTY(EditAnywhere, Category = "Wheel") 
 	bool bWheelHandbrake = true;
+	UPROPERTY(EditAnywhere, Category = "Wheel") 
+	float RotateWheelDirection = 1.f;
 	UPROPERTY(EditAnywhere, Category = "Friction") 
 	float StaticFriction = 1.0f;
 	UPROPERTY(EditAnywhere, Category = "Friction") 
 	float KineticFriction = 0.6f;
 	UPROPERTY(EditAnywhere, Category = "Brake") 
 	float BrakeingForce = 10000.f;
+
+	UPROPERTY(EditAnywhere, Category = "Mesh")
+	UStaticMeshComponent *WheelMesh;
 
 	// Local Variable
 	UPROPERTY(BlueprintReadOnly) 
@@ -75,6 +83,7 @@ public:
 	void UpdateWheelLocationAndVelocity(float DeltaTime);
 	void SaveNewWheelLocationAsLast();
 	FVector GetForce(float DeltaTime);
+	void RotateWheel(float DeltaTime);
 
 	FVector GetSuspertionForce(float DeltaTime);
 	FVector GetSideForce(float DeltaTime);
