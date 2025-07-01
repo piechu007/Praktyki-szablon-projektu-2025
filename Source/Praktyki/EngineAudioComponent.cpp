@@ -72,7 +72,7 @@ void UEngineAudioComponent::UpdateEngineSound()
     }
     else
     {
-        Scale = 0.5f;
+        Scale = 0.1f;
     }
 
     SetVolumeMultiplier(MinVolume + Scale * MaxExtraVolume);

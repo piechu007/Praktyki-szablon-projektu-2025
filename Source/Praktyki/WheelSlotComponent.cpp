@@ -17,13 +17,13 @@ UWheelSlotComponent::UWheelSlotComponent()
 
 void UWheelSlotComponent::OnRegister()
 {
-    Super::OnRegister();
+	Super::OnRegister();
 
-    if (WheelMesh)
-    {
-        WheelMesh->SetupAttachment(this);
-        WheelMesh->SetRelativeLocation(FVector(0.f, 0.f, -SpringMaxDownDistance));
-    }
+	if (WheelMesh)
+	{
+		WheelMesh->SetupAttachment(this);
+		WheelMesh->SetRelativeLocation(FVector(0.f, 0.f, -SpringMaxDownDistance));
+	}
 }
 
 // Called when the game starts
@@ -36,6 +36,8 @@ void UWheelSlotComponent::BeginPlay()
 void UWheelSlotComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	//RotateWheel(DeltaTime);
 }
 
 FVector UWheelSlotComponent::GetForce(float DeltaTime)
@@ -66,25 +68,24 @@ bool UWheelSlotComponent::Raycast()
 
 	FVector Start = GetComponentLocation();
 	FVector End = Start - (GetUpVector() * RayDistance);
-	
-	// ==================  DEBUG  ========================
-	//FVector StartDraw = GetComponentLocation();
-	//DrawDebugSphere(GetWorld(), StartDraw + NewWheelLocation, 1, 10, FColor::Red, false, 0.0002f);
 
-	return GetWorld()->LineTraceSingleByChannel(CurrentHitResult, Start, End, ECC_GameTraceChannel1, FCollisionQueryParams(), FCollisionResponseParams());;
+	// ==================  DEBUG  ========================
+	// FVector StartDraw = GetComponentLocation();
+	// DrawDebugSphere(GetWorld(), StartDraw + NewWheelLocation, 1, 10, FColor::Red, false, 0.0002f);
+
+	return GetWorld()->LineTraceSingleByChannel(CurrentHitResult, Start, End, ECC_GameTraceChannel1, FCollisionQueryParams(), FCollisionResponseParams());
+	;
 }
 
 void UWheelSlotComponent::UpdateWheelLocationAndVelocity(float DeltaTime)
 {
 	if (CurrentHitResult.bBlockingHit)
 	{
-		NewWheelLocation = - GetUpVector() * (CurrentHitResult.Distance - WheelRadius);
-		DrawDebugLine(GetWorld(), GetComponentLocation(), GetComponentLocation() + (GetUpVector() * 100.f), FColor::Yellow, false, 0.0001f, 0, 2.0f); // 0.1 time 2.0 thickness
+		NewWheelLocation = -GetUpVector() * (CurrentHitResult.Distance - WheelRadius);
 	}
 	else
 	{
-		NewWheelLocation = - GetUpVector() * (SpringMaxDownDistance);
-		DrawDebugLine(GetWorld(), GetComponentLocation(), GetComponentLocation() + (GetUpVector() * 100.f), FColor::Green, false, 0.0001f, 0, 2.0f); // 0.1 time 2.0 thickness
+		NewWheelLocation = -GetUpVector() * (SpringMaxDownDistance);
 	}
 
 	NewWheelWorldLocation = NewWheelLocation + GetComponentLocation();
@@ -93,13 +94,26 @@ void UWheelSlotComponent::UpdateWheelLocationAndVelocity(float DeltaTime)
 	WheelWorldVelocity = (NewWheelWorldLocation - LastWheelWorldLocation) / DeltaTime;
 
 	WheelMesh->SetWorldLocation(NewWheelWorldLocation);
+	RotateWheel(DeltaTime);
 
 	// ==================  DEBUG  ========================
-	//FVector StartDraw = GetComponentLocation();
-	DrawDebugSphere(GetWorld(), CurrentHitResult.Location, 5, 3, FColor::Black, false, 1.f);
-	//DrawDebugSphere(GetWorld(), StartDraw + NewWheelLocation, 1, 10, FColor::Red, false, 0.0002f);
-	//DrawDebugSphere(GetWorld(), StartDraw + LastWheelLocation, 1, 10, FColor::White, false, 0.0002f);
-	//DrawDebugSphere(GetWorld(), StartDraw + NewWheelLocation, WheelRadius, 20, FColor::Red, false, 0.0002f);
+	// FVector StartDraw = GetComponentLocation();
+	//DrawDebugSphere(GetWorld(), CurrentHitResult.Location, 5, 3, FColor::Black, false, 1.f);
+	if (CurrentDebugUpdateDelay <= 0)
+	{
+		DrawDebugLine(GetWorld(),
+					  CurrentHitResult.Location + (GetForwardVector() * 60.f) + (GetUpVector() * 1.f),
+					  CurrentHitResult.Location + (GetForwardVector() * -60.f) + (GetUpVector() * 1.f),
+					  FColor::Black, false, 1.f, 0, 10.0f);
+		CurrentDebugUpdateDelay = DebugUpdateDelay;
+	}
+	else
+	{
+		CurrentDebugUpdateDelay --;
+	}
+	// DrawDebugSphere(GetWorld(), StartDraw + NewWheelLocation, 1, 10, FColor::Red, false, 0.0002f);
+	// DrawDebugSphere(GetWorld(), StartDraw + LastWheelLocation, 1, 10, FColor::White, false, 0.0002f);
+	// DrawDebugSphere(GetWorld(), StartDraw + NewWheelLocation, WheelRadius, 20, FColor::Red, false, 0.0002f);
 }
 
 void UWheelSlotComponent::SaveNewWheelLocationAsLast()
@@ -111,10 +125,16 @@ void UWheelSlotComponent::SaveNewWheelLocationAsLast()
 void UWheelSlotComponent::RotateWheel(float DeltaTime)
 {
 	float WheelForwardSpeed = FVector::DotProduct(GetForwardVector(), WheelWorldVelocity);
-	float RotateAngle = RotateWheelDirection * 360.f * (WheelForwardSpeed / (WheelRadius * 2 * PI)) * DeltaTime;
+	WheelAngularVelocity = 360.f * (WheelForwardSpeed / (WheelRadius * 2 * PI));
+	float RotateAngle = RotateWheelDirection * WheelAngularVelocity * DeltaTime;
 	WheelMesh->AddLocalRotation(FRotator(RotateAngle, 0.f, 0.f));
-}
 
+	// Debug
+	// FVector StartDraw = NewWheelWorldLocation + GetRightVector() * 10.f;
+	// DrawDebugLine(GetWorld(), StartDraw, StartDraw + (WheelWorldVelocity * 0.1f), FColor::Orange, false, 0.001f, 10, 3.0f);
+	// StartDraw += GetRightVector() * 10.f;
+	// DrawDebugLine(GetWorld(), StartDraw, StartDraw + (GetForwardVector() * WheelForwardSpeed * 0.1f), FColor::Cyan, false, 0.001f, 10, 3.0f);
+}
 
 FVector UWheelSlotComponent::GetSuspertionForce(float DeltaTime)
 {
@@ -128,7 +148,7 @@ FVector UWheelSlotComponent::GetSuspertionForce(float DeltaTime)
 
 	// DEBUG
 	FVector StartDraw = GetComponentLocation();
-	DrawDebugLine(GetWorld(), StartDraw, StartDraw + (SpringDir * ((SprinOffset * SpringStrenght) - (SprinVelocity * SpringDamper)) * 0.0002f), FColor::Purple, false, 0.0001f, 0, 2.0f); // 0.1 time 2.0 thickness
+	DrawDebugLine(GetWorld(), StartDraw, StartDraw + (SpringDir * ((SprinOffset * SpringStrenght) - (SprinVelocity * SpringDamper)) * 0.0002f), FColor::Purple, false, 0.0001f, 0, 2.0f);
 	StartDraw += GetForwardVector() * 10.f;
 	DrawDebugLine(GetWorld(), StartDraw, StartDraw + (SpringDir * SprinOffset * SpringStrenght * 0.0002f), FColor::Blue, false, 0.001f, 0, 2.0f); // Spring
 	StartDraw += GetForwardVector() * 10.f;

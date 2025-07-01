@@ -9,12 +9,12 @@
 class UCustomVehicleMovementComponent;
 class UStaticMeshComponent;
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class PRAKTYKI_API UWheelSlotComponent : public USceneComponent
 {
 	GENERATED_BODY()
 
-public:	
+public:
 	// Sets default values for this component's properties
 	UWheelSlotComponent();
 
@@ -24,59 +24,61 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
-public:	
+public:
 	// Called every frame
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction) override;
 
 	// Params
-	UPROPERTY(EditAnywhere, Category = "Suspension") 
+	UPROPERTY(EditAnywhere, Category = "Suspension")
 	float SpringStrenght = 1000000.0f;
-	UPROPERTY(EditAnywhere, Category = "Suspension") 
+	UPROPERTY(EditAnywhere, Category = "Suspension")
 	float SpringDamper = 100.0f;
-	UPROPERTY(EditAnywhere, Category = "Suspension") 
+	UPROPERTY(EditAnywhere, Category = "Suspension")
 	float SpringMaxUpDistance = 0.0f;
-	UPROPERTY(EditAnywhere, Category = "Suspension") 
+	UPROPERTY(EditAnywhere, Category = "Suspension")
 	float SpringDefaultDistance = 10.0f;
-	UPROPERTY(EditAnywhere, Category = "Suspension") 	
+	UPROPERTY(EditAnywhere, Category = "Suspension")
 	float SpringMaxDownDistance = 20.0f;
-	UPROPERTY(EditAnywhere, Category = "Wheel") 
+	UPROPERTY(EditAnywhere, Category = "Wheel")
 	float WheelRadius = 32.0f;
-	UPROPERTY(EditAnywhere, Category = "Wheel") 
+	UPROPERTY(EditAnywhere, Category = "Wheel")
 	bool bWheelDrive = true;
-	UPROPERTY(EditAnywhere, Category = "Wheel") 
+	UPROPERTY(EditAnywhere, Category = "Wheel")
 	bool bWheelSteering = false;
-	UPROPERTY(EditAnywhere, Category = "Wheel") 
+	UPROPERTY(EditAnywhere, Category = "Wheel")
 	bool bWheelBrake = true;
-	UPROPERTY(EditAnywhere, Category = "Wheel") 
+	UPROPERTY(EditAnywhere, Category = "Wheel")
 	bool bWheelHandbrake = true;
-	UPROPERTY(EditAnywhere, Category = "Wheel") 
+	UPROPERTY(EditAnywhere, Category = "Wheel")
 	float RotateWheelDirection = 1.f;
-	UPROPERTY(EditAnywhere, Category = "Friction") 
+	UPROPERTY(EditAnywhere, Category = "Friction")
 	float StaticFriction = 1.0f;
-	UPROPERTY(EditAnywhere, Category = "Friction") 
+	UPROPERTY(EditAnywhere, Category = "Friction")
 	float KineticFriction = 0.6f;
-	UPROPERTY(EditAnywhere, Category = "Brake") 
+	UPROPERTY(EditAnywhere, Category = "Brake")
 	float BrakeingForce = 10000.f;
 
 	UPROPERTY(EditAnywhere, Category = "Mesh")
 	UStaticMeshComponent *WheelMesh;
 
 	// Local Variable
-	UPROPERTY(BlueprintReadOnly) 
+	UPROPERTY(BlueprintReadOnly)
 	FVector LastWheelLocation;
-	UPROPERTY(BlueprintReadOnly) 
+	UPROPERTY(BlueprintReadOnly)
 	FVector LastWheelWorldLocation;
-	UPROPERTY(BlueprintReadOnly) 
+	UPROPERTY(BlueprintReadOnly)
 	FVector NewWheelLocation;
-	UPROPERTY(BlueprintReadOnly) 
+	UPROPERTY(BlueprintReadOnly)
 	FVector NewWheelWorldLocation;
-	UPROPERTY(BlueprintReadOnly) 
+	UPROPERTY(BlueprintReadOnly)
 	FVector WheelVelocity;
-	UPROPERTY(BlueprintReadOnly) 
+	UPROPERTY(BlueprintReadOnly)
 	FVector WheelWorldVelocity;
-	UPROPERTY(BlueprintReadOnly) 
+	UPROPERTY(BlueprintReadOnly)
+	float WheelAngularVelocity;
+	UPROPERTY(BlueprintReadOnly)
 	FHitResult CurrentHitResult;
-	UPROPERTY(BlueprintReadOnly) 
+	UPROPERTY(BlueprintReadOnly)
 	bool bSlipping;
 
 	bool Raycast();
@@ -88,4 +90,8 @@ public:
 	FVector GetSuspertionForce(float DeltaTime);
 	FVector GetSideForce(float DeltaTime);
 	FVector GetForwardForce(float DeltaTime);
+
+private:
+	int32 DebugUpdateDelay = 10;
+	int32 CurrentDebugUpdateDelay = 0;
 };

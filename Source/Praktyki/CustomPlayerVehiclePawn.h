@@ -77,9 +77,9 @@ protected:
 	UEngineAudioComponent *EngineSound;
 	UPROPERTY(VisibleAnywhere, Category = "Mesh")
 	USkeletalMeshComponent *VehicleMesh;
-	UPROPERTY(VisibleAnywhere, Category = "Movment")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movment")
 	UCustomVehicleMovementComponent *CustomVehicleMovement;
-	UPROPERTY(VisibleAnywhere, Category = "Movment")
+	UPROPERTY(EditAnywhere, Instanced, BlueprintReadWrite, Category = "Movment")
 	TArray<UWheelSlotComponent*> WheelSlotComponents;
 	UPROPERTY(VisibleAnywhere, Category = "Movment")
 	TArray<FName> WheelSlotBoneNames = {TEXT("suspension_back_left"),TEXT("suspension_back_right"),TEXT("suspension_front_left"),TEXT("suspension_front_right")};
