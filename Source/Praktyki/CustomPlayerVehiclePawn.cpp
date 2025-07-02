@@ -1,8 +1,8 @@
 // Copyright 2025 Teyon. All Rights Reserved.
 
 #include "CustomPlayerVehiclePawn.h"
-#include "VehicleCameraComponent.h"
-#include "EngineAudioComponent.h"
+#include "CustomVehicleCameraComponent.h"
+#include "CustomEngineAudioComponent.h"
 #include "VehicleSpringArmComponent.h"
 #include "WheelSlotComponent.h"
 #include "CustomVehicleMovementComponent.h"
@@ -35,13 +35,13 @@ ACustomPlayerVehiclePawn::ACustomPlayerVehiclePawn()
 		CameraBooms[i]->TurnOff();
 	}
 
-	FollowCamera = CreateDefaultSubobject<UVehicleCameraComponent>(TEXT("FollowCamera"));
+	FollowCamera = CreateDefaultSubobject<UCustomVehicleCameraComponent>(TEXT("FollowCamera"));
 
 	CurrentCameraBoomIndex = 0;
 	CameraBooms[CurrentCameraBoomIndex]->TurnOn(FollowCamera);
 
 	// Sounds
-	EngineSound = CreateDefaultSubobject<UEngineAudioComponent>(TEXT("EngineSound"));
+	EngineSound = CreateDefaultSubobject<UCustomEngineAudioComponent>(TEXT("EngineSound"));
 	EngineSound->SetupAttachment(VehicleMesh, TEXT("EngineExtAudioSourceComponentSocket"));
 }
 

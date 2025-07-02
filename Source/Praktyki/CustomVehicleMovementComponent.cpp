@@ -15,6 +15,7 @@ UCustomVehicleMovementComponent::UCustomVehicleMovementComponent()
 	ForwardGearsRatio = {15.f, 10.f, 7.f, 5.f, 3.f};
 	BackGearsRatio = {-14.f};
 	DownforceOffset = FVector(-50.f, 0.f, 0.f);
+	AirDragForceOffset = FVector(0.f, 0.f, 0.f);
 }
 
 // Called when the game starts
@@ -42,6 +43,7 @@ void UCustomVehicleMovementComponent::TickComponent(float DeltaTime, ELevelTick 
 
 	AddForcesFromAllWheels(DeltaTime);
 	AddDownforce();
+	AddAirDragForce();
 }
 
 void UCustomVehicleMovementComponent::UpdateAngleOfSteeringWheels()
@@ -157,7 +159,7 @@ FVector UCustomVehicleMovementComponent::GetForceFromWheel(UWheelSlotComponent *
 	}
 
 	// DEBUG
-	FVector StartDraw = WheelSlot->GetComponentLocation();
+	FVector StartDraw = WheelSlot->NewWheelWorldLocation;
 	float Thickenss = 3.f;
 	float LenghtScale = 0.001f;
 	DrawDebugLine(GetWorld(), StartDraw, StartDraw + (WheelSlot->GetForwardVector() * (ForwardForceValue)*LenghtScale), FColor::Red, false, 0.0001f, 1, Thickenss);
@@ -174,13 +176,28 @@ void UCustomVehicleMovementComponent::AddDownforce()
 {
 	float DownforceValue = ForwardVelocity * ForwardVelocity * DownforceFactor;
 
-	FVector DownForceLocation = PlayerVehiclePawn->GetMesh()->GetComponentTransform().TransformPosition(DownforceOffset);
-	PlayerVehiclePawn->GetMesh()->AddForceAtLocation(PlayerVehiclePawn->GetMesh()->GetUpVector() * -DownforceValue, DownForceLocation);
+	FVector DownforceLocation = PlayerVehiclePawn->GetMesh()->GetComponentTransform().TransformPosition(DownforceOffset);
+	//PlayerVehiclePawn->GetMesh()->AddForceAtLocation(PlayerVehiclePawn->GetMesh()->GetUpVector() * -DownforceValue, DownforceLocation);
+	PlayerVehiclePawn->GetMesh()->AddForce(PlayerVehiclePawn->GetMesh()->GetUpVector() * -DownforceValue);
 
 	// DEBUG
 	float Thickenss = 3.f;
 	float LenghtScale = 0.001f;
-	DrawDebugLine(GetWorld(), DownForceLocation, DownForceLocation + (PlayerVehiclePawn->GetMesh()->GetUpVector() * (-DownforceValue) * LenghtScale), FColor::Orange, false, 0.0001f, 1, Thickenss);
+	DrawDebugLine(GetWorld(), DownforceLocation, DownforceLocation + (PlayerVehiclePawn->GetMesh()->GetUpVector() * (-DownforceValue) * LenghtScale), FColor::Cyan, false, 0.0001f, 1, Thickenss);
+}
+
+void UCustomVehicleMovementComponent::AddAirDragForce()
+{
+	float AirDragForceValue = ForwardVelocity * ForwardVelocity * AirDragForceFactor;
+
+	FVector AirDragForceLocation = PlayerVehiclePawn->GetMesh()->GetComponentTransform().TransformPosition(AirDragForceOffset);
+	// PlayerVehiclePawn->GetMesh()->AddForceAtLocation(PlayerVehiclePawn->GetMesh()->GetForwardVector() * -AirDragForceValue, AirDragForceLocation);
+	PlayerVehiclePawn->GetMesh()->AddForce(PlayerVehiclePawn->GetMesh()->GetForwardVector() * -AirDragForceValue);
+
+	// DEBUG
+	float Thickenss = 3.f;
+	float LenghtScale = 0.001f;
+	DrawDebugLine(GetWorld(), AirDragForceLocation, AirDragForceLocation + (PlayerVehiclePawn->GetMesh()->GetForwardVector() * (-AirDragForceValue) * LenghtScale), FColor::Orange, false, 0.0001f, 1, Thickenss);
 }
 
 void UCustomVehicleMovementComponent::UpdateSpeed()
@@ -208,7 +225,7 @@ void UCustomVehicleMovementComponent::UpdateEngine()
 	// UE_LOG(LogTemp, Display, TEXT("CurrentRPM                        = %f"), CurrentRPM);
 
 	CurrentEngineTorque = ThrottleCurve->GetFloatValue(1.f - (MaxRPM - CurrentRPM) / MaxRPM) * EngineMaxTorque * 100000.f / DriveWheelsNum; // *100 cm->m *1000 N
-	// UE_LOG(LogTemp, Display, TEXT("CurrentEngineTorque               = %f"), CurrentEngineTorque);
+																																			// UE_LOG(LogTemp, Display, TEXT("CurrentEngineTorque               = %f"), CurrentEngineTorque);
 }
 
 void UCustomVehicleMovementComponent::TryAutomaticlyChangeGear()
@@ -278,7 +295,7 @@ int32 UCustomVehicleMovementComponent::GetCurrentGear() const
 	return CurrentGear;
 }
 
-float UCustomVehicleMovementComponent::GetCurrentCurrentRPM() const
+float UCustomVehicleMovementComponent::GetCurrentRPM() const
 {
 	return CurrentRPM;
 }

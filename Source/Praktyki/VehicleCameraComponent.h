@@ -6,7 +6,7 @@
 #include "Camera/CameraComponent.h"
 #include "VehicleCameraComponent.generated.h"
 
-class UChaosWheeledVehicleMovementComponent;
+
 /**
  *
  */
@@ -20,12 +20,12 @@ public:
 protected:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+	virtual float GetForwardSpeed();
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dynamic Field of View")
 	float MinFOV = 60.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dynamic Field of View")
 	float MaxExtraFOV = 50.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dynamic Field of View")
 	float SpeedForMaxFOV = 120.f;
-
-	UChaosWheeledVehicleMovementComponent *VehicleMovementComponent;
 };

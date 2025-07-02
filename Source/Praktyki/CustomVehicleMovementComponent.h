@@ -31,7 +31,7 @@ public:
 	UFUNCTION(BlueprintPure)
 	int32 GetCurrentGear() const;
 	UFUNCTION(BlueprintPure)
-	float GetCurrentCurrentRPM() const;
+	float GetCurrentRPM() const;
 
 	UPROPERTY(EditAnywhere, Category = "Engine")
 	float EngineMaxTorque = 600.f;
@@ -61,6 +61,10 @@ public:
 	float DownforceFactor = 20.f;
 	UPROPERTY(EditAnywhere, Category = "Vehicle")
 	FVector DownforceOffset;
+	UPROPERTY(EditAnywhere, Category = "Vehicle")
+	float AirDragForceFactor = 32.f;
+	UPROPERTY(EditAnywhere, Category = "Vehicle")
+	FVector AirDragForceOffset;
 
 protected:
 	int32 CurrentGear = 0;
@@ -101,6 +105,7 @@ private:
 	void ChangeGear(int32 dir);
 
 	void AddDownforce();
+	void AddAirDragForce();
 
 	void SuspensionSpringForce();
 };

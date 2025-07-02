@@ -25,6 +25,9 @@ public:
 protected:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction) override;
 
+	virtual int32 GetCurrentGear();
+	virtual float GetCurrentRPM();
+
 	void TryPlayGearShiftSound();
 	void UpdateEngineSound();
 
@@ -43,8 +46,6 @@ protected:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Engine Sound")
     USoundBase* ShiftSound;
-
-	UChaosWheeledVehicleMovementComponent *VehicleMovementComponent;
 
 	int32 LastGear;
 };
