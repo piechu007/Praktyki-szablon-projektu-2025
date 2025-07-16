@@ -55,6 +55,8 @@ public:
 	float StaticFriction = 1.0f;
 	UPROPERTY(EditAnywhere, Category = "Friction")
 	float KineticFriction = 0.6f;
+	UPROPERTY(EditAnywhere, Category = "Friction")
+	float SideForceFactor = 60.f;
 	UPROPERTY(EditAnywhere, Category = "Brake")
 	float BrakeingForce = 10000.f;
 
@@ -63,35 +65,39 @@ public:
 
 	// Local Variable
 	UPROPERTY(BlueprintReadOnly)
-	FVector LastWheelLocation;
+	FVector LastWheelLocation;// Wheel offset from WheelSlot location in world space [cm]
 	UPROPERTY(BlueprintReadOnly)
-	FVector LastWheelWorldLocation;
+	FVector LastWheelWorldLocation;// Wheel location in world space [cm]
 	UPROPERTY(BlueprintReadOnly)
-	FVector NewWheelLocation;
+	FVector NewWheelLocation; // Wheel offset from WheelSlot location in world space [cm]
 	UPROPERTY(BlueprintReadOnly)
-	FVector NewWheelWorldLocation;
+	FVector NewWheelWorldLocation; // Wheel offset from WheelSlot location in world space [cm]
 	UPROPERTY(BlueprintReadOnly)
-	FVector WheelVelocity;
+	FVector WheelVelocity; // Wheel Velocity relative to WheelSlot [cm/s]
 	UPROPERTY(BlueprintReadOnly)
-	FVector WheelWorldVelocity;
+	FVector WheelWorldVelocity; // [cm/s]
 	UPROPERTY(BlueprintReadOnly)
-	float WheelAngularVelocity;
+	float WheelAngularVelocity; // [dgr/s]
 	UPROPERTY(BlueprintReadOnly)
 	FHitResult CurrentHitResult;
 	UPROPERTY(BlueprintReadOnly)
 	bool bSlipping;
 
+	void SetSlipping(bool bValue);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void SlippingStarted();
+	UFUNCTION(BlueprintImplementableEvent)
+	void SlippingStoped();
+
 	bool Raycast();
 	void UpdateWheelLocationAndVelocity(float DeltaTime);
 	void SaveNewWheelLocationAsLast();
-	FVector GetForce(float DeltaTime);
 	void RotateWheel(float DeltaTime);
-
-	FVector GetSuspertionForce(float DeltaTime);
-	FVector GetSideForce(float DeltaTime);
-	FVector GetForwardForce(float DeltaTime);
+	float GetFrictionFactor();
 
 private:
-	int32 DebugUpdateDelay = 10;
+	int32 DebugUpdateDelay = 1;
 	int32 CurrentDebugUpdateDelay = 0;
+	float WheelLength = 0.0f;
 };

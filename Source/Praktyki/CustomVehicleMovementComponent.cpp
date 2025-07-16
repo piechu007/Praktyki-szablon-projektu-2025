@@ -42,7 +42,7 @@ void UCustomVehicleMovementComponent::TickComponent(float DeltaTime, ELevelTick 
 	UpdateEngine();
 
 	AddForcesFromAllWheels(DeltaTime);
-	AddDownforce();
+	AddDownforce();	
 	AddAirDragForce();
 }
 
@@ -92,82 +92,87 @@ void UCustomVehicleMovementComponent::AddForcesFromAllWheels(float DeltaTime)
 			UE_LOG(LogTemp, Warning, TEXT("PlayerVehiclePawn->GetMesh() == nullptr"));
 			return;
 		}
-		PlayerVehiclePawn->GetMesh()->AddForceAtLocation(GetForceFromWheel(WheelSlot, DeltaTime), WheelSlot->NewWheelWorldLocation);
+		PlayerVehiclePawn->GetMesh()->AddForceAtLocation(GetForceFromWheel(WheelSlot, DeltaTime), WheelSlot->NewWheelWorldLocation); // [cN]
 	}
 }
 
 FVector UCustomVehicleMovementComponent::GetForceFromWheel(UWheelSlotComponent *WheelSlot, float DeltaTime)
 {
 	WheelSlot->Raycast();
-	WheelSlot->UpdateWheelLocationAndVelocity(DeltaTime);
+	WheelSlot->UpdateWheelLocationAndVelocity(DeltaTime);	//
+	WheelSlot->SaveNewWheelLocationAsLast();
 
 	FVector Force = FVector::ZeroVector;
 
+	if (!WheelSlot->CurrentHitResult.bBlockingHit)
+	{
+		return Force;
+	}
+
+	FVector FrictionForce = FVector::ZeroVector;
+
 	// ==========  Get Suspertion Force ===============
 	float SuspertionForceValue = 0.f;
-	if (WheelSlot->CurrentHitResult.bBlockingHit)
-	{
-		FVector SpringDir = WheelSlot->GetUpVector();
-		float SprinOffset = WheelSlot->SpringDefaultDistance + WheelSlot->WheelRadius - WheelSlot->CurrentHitResult.Distance;
-		float SprinVelocity = FVector::DotProduct(SpringDir, WheelSlot->WheelVelocity);
+	FVector SpringDir = WheelSlot->GetUpVector();
+	float SprinOffset = (WheelSlot->SpringDefaultDistance + WheelSlot->WheelRadius - WheelSlot->CurrentHitResult.Distance); // [cm] 
+	float SprinVelocity = FVector::DotProduct(SpringDir, WheelSlot->WheelVelocity); // [cm/s] 
 
-		SuspertionForceValue = ((SprinOffset * WheelSlot->SpringStrenght) - (SprinVelocity * WheelSlot->SpringDamper));
-		Force += SpringDir * SuspertionForceValue;
-
-		// DrawDebugLine(GetWorld(), StartDraw, StartDraw + (SpringDir * SprinOffset * WheelSlot->SpringStrenght * 0.0002f), FColor::Blue, false, 0.001f, 0, 2.0f); // Spring
-		// StartDraw += WheelSlot->GetForwardVector() * 10.f;
-		// DrawDebugLine(GetWorld(), StartDraw, StartDraw + (SpringDir * -SprinVelocity * WheelSlot->SpringDamper * 0.0002f), FColor::Red, false, 0.001f, 0, 2.0f); // Damping
-		// StartDraw += WheelSlot->GetForwardVector() * 10.f;
-		// DrawDebugLine(GetWorld(), StartDraw, StartDraw + (SpringDir * 300000.f * 0.001f), FColor::White, false, 0.0002f, 0, 2.0f); // Gravity
-		// UE_LOG(LogTemp, Warning, TEXT("SuspertionForceValue = %f"), SuspertionForceValue);
-	}
+	SuspertionForceValue = ((SprinOffset * WheelSlot->SpringStrenght) - (SprinVelocity * WheelSlot->SpringDamper)); // [cN]
+	Force += SpringDir * SuspertionForceValue;
 
 	// ==========  Get Forward Force ===============
 	float ForwardForceValue = 0.f;
-	if (WheelSlot->CurrentHitResult.bBlockingHit)
+	if (BrakeInput > 0.05f && WheelSlot->bWheelBrake)
 	{
-		if (BrakeInput > 0.05f && WheelSlot->bWheelBrake)
-		{
-			ForwardForceValue = -BrakeInput * WheelSlot->BrakeingForce;
-		}
-		else if (WheelSlot->bWheelDrive)
-		{
-			if (ThrottleInput > 0.05f)
-			{
-				ForwardForceValue = ThrottleInput * (CurrentEngineTorque / WheelSlot->WheelRadius);
-			}
-			else
-			{
-				ForwardForceValue = -EngineBrakingForce;
-			}
-		}
-
-		Force += WheelSlot->GetForwardVector() * ForwardForceValue;
+		ForwardForceValue = -BrakeInput * WheelSlot->BrakeingForce;
 	}
+	else if (WheelSlot->bWheelDrive)
+	{
+		if (ThrottleInput > 0.05f)
+		{
+			ForwardForceValue = ThrottleInput * (CurrentEngineTorque / WheelSlot->WheelRadius);
+		}
+		else
+		{
+			ForwardForceValue = -EngineBrakingForce;
+		}
+	}
+	FrictionForce += WheelSlot->GetForwardVector() * ForwardForceValue;
 
 	// ==========  Get Side Force ===============
 	float SideForceValue = 0.f;
-	if (WheelSlot->CurrentHitResult.bBlockingHit)
-	{
-		FVector SideDir = WheelSlot->GetRightVector();
-		float SideVelocity = FVector::DotProduct(SideDir, WheelSlot->WheelWorldVelocity);
+	FVector SideDir = WheelSlot->GetRightVector();
+	float SideVelocity = FVector::DotProduct(SideDir, WheelSlot->WheelWorldVelocity);
+	float accelerationValue = -SideVelocity / DeltaTime;
 
-		float accelerationValue = -SideVelocity / DeltaTime;
-		// SideForceValue = accelerationValue * SuspertionForceValue * 0.001f;
-		SideForceValue = accelerationValue * SteeringForceFactor;
-		Force += WheelSlot->GetRightVector() * SideForceValue;
+	SideForceValue = accelerationValue * WheelSlot->SideForceFactor;
+	FrictionForce += WheelSlot->GetRightVector() * SideForceValue;
+
+	// ========== Testing Slipping ===============
+	float FrictionForceMaxValue = FMath::Abs(SuspertionForceValue * WheelSlot->GetFrictionFactor());
+	float FrictionForceCurrentValueSquared = SideForceValue * SideForceValue + ForwardForceValue * ForwardForceValue;
+	if (FrictionForceCurrentValueSquared > FrictionForceMaxValue * FrictionForceMaxValue)
+	{
+		WheelSlot->SetSlipping(true);
+		FrictionForce = FrictionForce.GetSafeNormal() * FrictionForceMaxValue;
 	}
+	else
+	{
+		WheelSlot->SetSlipping(false);
+	}
+	Force += FrictionForce;
 
 	// DEBUG
-	FVector StartDraw = WheelSlot->NewWheelWorldLocation;
-	float Thickenss = 3.f;
-	float LenghtScale = 0.001f;
-	DrawDebugLine(GetWorld(), StartDraw, StartDraw + (WheelSlot->GetForwardVector() * (ForwardForceValue)*LenghtScale), FColor::Red, false, 0.0001f, 1, Thickenss);
-	DrawDebugLine(GetWorld(), StartDraw, StartDraw + (WheelSlot->GetRightVector() * (SideForceValue)*LenghtScale), FColor::Green, false, 0.0001f, 2, Thickenss);
-	DrawDebugLine(GetWorld(), StartDraw, StartDraw + (WheelSlot->GetUpVector() * (SuspertionForceValue)*LenghtScale), FColor::Blue, false, 0.0001f, 3, Thickenss);
-	DrawDebugLine(GetWorld(), StartDraw, StartDraw + (WheelSlot->GetUpVector() * SuspertionForceValue + WheelSlot->GetRightVector() * SideForceValue + WheelSlot->GetForwardVector() * ForwardForceValue) * LenghtScale, FColor::White, false, 0.0001f, 0, Thickenss);
-
-	WheelSlot->SaveNewWheelLocationAsLast();
+	//FVector StartDraw = WheelSlot->NewWheelWorldLocation;
+	//float Thickenss = 3.f;
+	//float LenghtScale = 0.0001f;
+	//DrawDebugLine(GetWorld(), StartDraw, StartDraw + (WheelSlot->GetForwardVector() * (ForwardForceValue)*LenghtScale), FColor::White, false, 0.0001f, 2, Thickenss);
+	//DrawDebugLine(GetWorld(), StartDraw, StartDraw + (WheelSlot->GetRightVector() * (SideForceValue)*LenghtScale), FColor::Yellow, false, 0.0001f, 2, Thickenss);
+	//DrawDebugLine(GetWorld(), StartDraw, StartDraw + (WheelSlot->GetUpVector() * (SuspertionForceValue)*LenghtScale), FColor::Blue, false, 0.0001f, 2, Thickenss);
+	//DrawDebugLine(GetWorld(), StartDraw, StartDraw + (Force)*LenghtScale, FColor::White, false, 0.0001f, 1, Thickenss);
+	//StartDraw -= WheelSlot->GetUpVector() * 10.f;
+	//DrawDebugLine(GetWorld(), StartDraw, StartDraw + (FrictionForce.GetSafeNormal() * FrictionForceMaxValue) * LenghtScale, FColor::Magenta, false, 0.0001f, 3, Thickenss);
+	//DrawDebugLine(GetWorld(), StartDraw, StartDraw + (FrictionForce)*LenghtScale, WheelSlot->bSlipping ? FColor::Red : FColor::Green, false, 0.0001f, 4, Thickenss);
 
 	return Force;
 }
@@ -177,13 +182,13 @@ void UCustomVehicleMovementComponent::AddDownforce()
 	float DownforceValue = ForwardVelocity * ForwardVelocity * DownforceFactor;
 
 	FVector DownforceLocation = PlayerVehiclePawn->GetMesh()->GetComponentTransform().TransformPosition(DownforceOffset);
-	//PlayerVehiclePawn->GetMesh()->AddForceAtLocation(PlayerVehiclePawn->GetMesh()->GetUpVector() * -DownforceValue, DownforceLocation);
+	// PlayerVehiclePawn->GetMesh()->AddForceAtLocation(PlayerVehiclePawn->GetMesh()->GetUpVector() * -DownforceValue, DownforceLocation);
 	PlayerVehiclePawn->GetMesh()->AddForce(PlayerVehiclePawn->GetMesh()->GetUpVector() * -DownforceValue);
 
 	// DEBUG
-	float Thickenss = 3.f;
-	float LenghtScale = 0.001f;
-	DrawDebugLine(GetWorld(), DownforceLocation, DownforceLocation + (PlayerVehiclePawn->GetMesh()->GetUpVector() * (-DownforceValue) * LenghtScale), FColor::Cyan, false, 0.0001f, 1, Thickenss);
+	//float Thickenss = 3.f;
+	//float LenghtScale = 0.0002f;
+	//DrawDebugLine(GetWorld(), DownforceLocation, DownforceLocation + (PlayerVehiclePawn->GetMesh()->GetUpVector() * (-DownforceValue) * LenghtScale), FColor::Cyan, false, 0.0001f, 1, Thickenss);
 }
 
 void UCustomVehicleMovementComponent::AddAirDragForce()
@@ -191,13 +196,12 @@ void UCustomVehicleMovementComponent::AddAirDragForce()
 	float AirDragForceValue = ForwardVelocity * ForwardVelocity * AirDragForceFactor;
 
 	FVector AirDragForceLocation = PlayerVehiclePawn->GetMesh()->GetComponentTransform().TransformPosition(AirDragForceOffset);
-	// PlayerVehiclePawn->GetMesh()->AddForceAtLocation(PlayerVehiclePawn->GetMesh()->GetForwardVector() * -AirDragForceValue, AirDragForceLocation);
 	PlayerVehiclePawn->GetMesh()->AddForce(PlayerVehiclePawn->GetMesh()->GetForwardVector() * -AirDragForceValue);
 
 	// DEBUG
-	float Thickenss = 3.f;
-	float LenghtScale = 0.001f;
-	DrawDebugLine(GetWorld(), AirDragForceLocation, AirDragForceLocation + (PlayerVehiclePawn->GetMesh()->GetForwardVector() * (-AirDragForceValue) * LenghtScale), FColor::Orange, false, 0.0001f, 1, Thickenss);
+	//float Thickenss = 3.f;
+	//float LenghtScale = 0.0002f;
+	//DrawDebugLine(GetWorld(), AirDragForceLocation, AirDragForceLocation + (PlayerVehiclePawn->GetMesh()->GetForwardVector() * (-AirDragForceValue) * LenghtScale), FColor::Orange, false, 0.0001f, 1, Thickenss);
 }
 
 void UCustomVehicleMovementComponent::UpdateSpeed()
@@ -218,14 +222,11 @@ void UCustomVehicleMovementComponent::UpdateEngine()
 		}
 	}
 	DriveWheelsAverageAngularVelocity = FMath::Abs(DriveWheelsAverageAngularVelocity / DriveWheelsNum);
-	// UE_LOG(LogTemp, Display, TEXT("DriveWheelsAverageAngularVelocity = %f"), DriveWheelsAverageAngularVelocity);
 
 	TryAutomaticlyChangeGear();
 	CurrentRPM = FMath::Clamp(DriveWheelsAverageAngularVelocity * CurrentGearRatio, IdleRPM, MaxRPM);
-	// UE_LOG(LogTemp, Display, TEXT("CurrentRPM                        = %f"), CurrentRPM);
 
 	CurrentEngineTorque = ThrottleCurve->GetFloatValue(1.f - (MaxRPM - CurrentRPM) / MaxRPM) * EngineMaxTorque * 100000.f / DriveWheelsNum; // *100 cm->m *1000 N
-																																			// UE_LOG(LogTemp, Display, TEXT("CurrentEngineTorque               = %f"), CurrentEngineTorque);
 }
 
 void UCustomVehicleMovementComponent::TryAutomaticlyChangeGear()

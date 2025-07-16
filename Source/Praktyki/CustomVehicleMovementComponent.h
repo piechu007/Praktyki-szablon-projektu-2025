@@ -52,8 +52,6 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Engine")
 	TArray<float> BackGearsRatio;
 	UPROPERTY(EditAnywhere, Category = "Steering")
-	float SteeringForceFactor = 60.f;
-	UPROPERTY(EditAnywhere, Category = "Steering")
 	float DefaultSteeringAngle = 60.f;
 	UPROPERTY(EditAnywhere, Category = "Steering")
 	UCurveFloat *SteeringCurve;
